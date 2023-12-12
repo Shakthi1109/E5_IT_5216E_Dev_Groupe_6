@@ -1,16 +1,12 @@
-from entites.Question import Question
-
-class QuestionsService : 
+class ResultsService : 
 
     @staticmethod
-    def createQuestion(titre, image, content_question):
-        quest = Question(
-            
-        )
+    def createResults(id_result, id_question):
+        
         return True
 
     @staticmethod
-    def getQuestion():
+    def getResultsSorted():
         
         return []
 
