@@ -1,0 +1,29 @@
+
+== Class ==
+
+Question.class : 
+UUID, Position Question, Titre, Image, Content question
+
+AwnserQuestion.class : 
+UUID, UUID Question, content, isCorrect
+
+Result.class : 
+UUID, Pseudo, Date
+
+ResultQuestion.class : 
+UUID Result, UUID Question, UUID AwnserQuestion
+
+User.class : 
+UUID, email, password, type user
+
+
+== Services ==
+
+UsersService : 
+Create, Modify, Delete, Get
+
+ResultatsService :
+Create, Modify, Delete, Get, GetAllSorted
+
+QuestionsService :
+Create, Modify, Delete, Get
