@@ -1,11 +1,14 @@
 import sqlite3
+import os
 
 from flask import Flask
 from flask_cors import CORS
 from services.QuestionsService import *
 
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
+    SCRIPT_DIR = os.path.dirname(__file__)
+    DATABASE_FILE = os.path.join(SCRIPT_DIR, 'database.db')
+    conn = sqlite3.connect(DATABASE_FILE)
     conn.row_factory = sqlite3.Row
     return conn
 
