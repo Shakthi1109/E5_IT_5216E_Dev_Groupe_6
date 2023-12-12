@@ -1,4 +1,4 @@
-from entites.Question import Question
+from entities.Question import Question
 
 class QuestionsService : 
 
