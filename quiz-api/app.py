@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from services.QuestionsService import *
 
@@ -22,7 +22,7 @@ def hello_world():
 @app.route('/quiz-info')
 def quiz_info():
     conn = get_db_connection()
-    return str(QuestionsService.get_questions(conn))
+    return jsonify({"res": QuestionsService.get_questions(conn)})
 
 if __name__ == "__main__":
     app.run()
