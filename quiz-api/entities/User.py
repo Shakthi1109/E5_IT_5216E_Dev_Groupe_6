@@ -1,13 +1,13 @@
 from enum import Enum
-
-class User :
-    def __init__(self):
-        self.id = None 
-        self.email = None
-        self.password = None
-        self.type = TypeUser.USER
-
+from dataclasses import dataclass
 
 class TypeUser(Enum):
     ADMIN = 0
     USER = 1
+
+@dataclass
+class User :
+    id: str = None 
+    email: str = None
+    password: str = None
+    type: int = TypeUser.USER

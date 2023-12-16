@@ -14,7 +14,7 @@ class QuestionsService :
         return convert_to_model(res, Question)
     
     @staticmethod
-    def get_question_by_id(conn: Connection, id_question: str):
+    def get_question_by_id(conn: Connection, id_question: str) -> Question:
         query = "SELECT * FROM Question WHERE id = ?;"
         return convert_to_model(
             conn.execute(query, (id_question,)),

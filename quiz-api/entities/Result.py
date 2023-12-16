@@ -1,6 +1,9 @@
+from dataclasses import dataclass
+from datetime import datetime
+
+@dataclass
 class Result :
-    def __init__(self):
-        self.id = None 
-        self.pseudo = None
-        self.date = None
+    id: str = None 
+    pseudo: str = None
+    date: datetime = None
 

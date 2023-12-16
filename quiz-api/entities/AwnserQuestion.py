@@ -1,7 +1,9 @@
+from dataclasses import dataclass
+
+@dataclass
 class AwnserQuestion :
-    def __init__(self):
-        self.id = None 
-        self.id_question = None 
-        self.content = None
-        self.is_correct = False
+    id: str = None 
+    id_question: str = None 
+    content: str = None
+    is_correct: bool = False
 
