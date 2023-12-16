@@ -3,7 +3,7 @@ import os
 
 from flask import Flask, jsonify
 from flask_cors import CORS
-from services.QuestionsService import *
+from services.question_services import *
 
 def get_db_connection():
     SCRIPT_DIR = os.path.dirname(__file__)
@@ -19,10 +19,10 @@ CORS(app)
 def hello_world():
     return "Hello World!"
 
-@app.route('/quiz-info')
-def quiz_info():
+@app.route('/questions')
+def questions():
     conn = get_db_connection()
-    return jsonify({"res": QuestionsService.get_questions(conn)})
+    return QuestionsService.get_questions(conn)
 
 if __name__ == "__main__":
     app.run()

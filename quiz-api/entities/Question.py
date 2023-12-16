@@ -1,8 +1,10 @@
+from dataclasses import dataclass
+
+@dataclass
 class Question :
-    def __init__(self):
-        self.id = None 
-        self.position = None 
-        self.question = None
-        self.titre = None 
-        self.image = None 
+    id: str = None 
+    position: int = None 
+    question: str = None
+    titre: str = None 
+    image: str = None 
 
