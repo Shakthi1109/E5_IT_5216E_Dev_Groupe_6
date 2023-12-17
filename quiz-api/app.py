@@ -21,7 +21,7 @@ CORS(app)
 @app.route('/')
 def main():
     
-    routes_get = ["/questions", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions"]
+    routes_get = ["/questions", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions"]
     html = ""
     for r in routes_get : 
         html += f"<a href={r}><button>{r}</button></a><br/>"
@@ -29,14 +29,25 @@ def main():
     return html
 
 
+######################################################################################################
 """
 UNIQUEMENT POUR SIMULER LES TESTS
 """
 import requests
-def simulate_post_request(route, data):
-    url = f"http://127.0.0.1:5000{route}"  # Replace with your Flask server URL
-    headers = {'Content-Type': 'application/json'}  # Set the content type header
-    response = requests.post(url, json=data, headers=headers)
+def simulate_request(type, route, data):
+    url = f"http://127.0.0.1:5000{route}"
+    headers = {'Content-Type': 'application/json'}  
+    response = None
+    
+    if type == "post":
+        response = requests.post(url, json=data, headers=headers)
+        
+    elif type == "put":
+        response = requests.put(url, json=data, headers=headers)
+        
+    elif type == "delete":
+        response = requests.delete(url, json=data, headers=headers)
+        
     return response
 
 @app.route('/simulate-post/<route>', methods=['GET'])
@@ -45,10 +56,28 @@ def simulate_post(route):
     route = "/"+route
     data = routes_post[route]
     
-    response = simulate_post_request(route, data)
+    response = simulate_request("post", route, data)
     return response.json(), 200
 
+@app.route('/simulate-put/<route>', methods=['GET'])
+def simulate_put(route):
+    routes_post = {"questions" : {"route_total" : "questions/1", "content": "La question a été changé", "Réponse": True}}
+    data = routes_post[route]
+    route = "/"+data["route_total"]
+    
+    response = simulate_request("put", route, data)
+    return response.json(), 200
 
+@app.route('/simulate-delete/<route>', methods=['GET'])
+def simulate_put(route):
+    routes_post = {"questions" : {"route_total" : "questions/1", "content": "La question a été changé", "Réponse": True}}
+    data = routes_post[route]
+    route = "/"+data["route_total"]
+    
+    response = simulate_request("delete", route, data)
+    return response.json(), 200
+
+######################################################################################################
 
 """
 # GET quiz-info
@@ -223,6 +252,19 @@ def admin_login():
         return jsonify({'message': 'Mot de passe incorrect'}), 401  # Unauthorized
 
 
+
+#####################################################################################
+#
+#                               ROUTE ADMIN
+#
+#####################################################################################
+
+def is_admin_authenticated(authorization_header):
+    
+    # utiliser decode_token()
+    return True 
+
+
 """
 Créer une nouvelle question - POST /questions
 
@@ -253,12 +295,113 @@ def create_question():
 
     # Service Create question
 
-    return jsonify({'id': "IDDD"}), 200
+    return {'OK': data}, 200
 
-def is_admin_authenticated(authorization_header):
+"""
+Mettre à jour une question - PUT /questions/{questionId}
+
+Cette fonction permet de mettre à jour une question du quiz à partir de son identifiant base de données.
+
+Authentification : Administrateur
+
+Paramètres d’URL :
+- questionId : identifiant en base de données de la question
+
+Paramètres de corps de requête :
+- title : le titre de la question
+- text : l’intitulé de la question
+- image : image en base 64
+- position : la position (potentiellement nouvelle) de la question dans le quiz. Peut provoquer un décalage des positions des autres questions si cette position est déjà prise. Il est interdit de mettre une position supérieure au nombre de questions déjà en base.
+- possibleAnswers : liste des réponses possibles contenant chacune :
+  - text : l’intitulé de la réponse
+  - isCorrect : booléen indiquant si la réponse est la bonne ou non (vérification à prévoir pour éviter les doublons)
+
+Retour : HTTP : 204 - No Content
+Payload de retour : vide
+"""
+@app.route('/questions/<int:questionId>', methods=['PUT'])
+def update_question(questionId):
     
-    # utiliser decode_token()
-    return True 
+    print(f"== UPDATE Question : {questionId}")
+    
+    if not is_admin_authenticated(request.headers.get('Authorization')):
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    data = request.json
+
+    # Service update questions
+    
+    return {'OK': data}, 200
+
+
+"""
+Supprimer une question - DELETE /questions/{questionId}
+
+Cette fonction permet de supprimer une question du quiz à partir de son identifiant en base de données.
+
+Authentification : Administrateur
+
+Paramètres d’URL :
+- questionId : identifiant de la question en base de données
+
+Retour : HTTP : 204 - No Content
+Payload de retour : vide
+"""
+@app.route('/questions/<int:questionId>', methods=['DELETE'])
+def delete_question(questionId):
+
+    if not is_admin_authenticated(request.headers.get('Authorization')):
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    print(f"== Service delete questions {questionId}")
+    # Service delete 
+
+    return '', 204
+
+"""
+Supprimer toutes les questions - DELETE /questions/all
+
+Cette fonction permet de supprimer toutes les questions (et leurs réponses respectives) du quiz.
+
+Authentification : Administrateur
+
+Paramètres d’URL : Aucun
+
+Retour : HTTP : 204 - No Content
+Payload de retour : vide
+"""
+@app.route('/questions/all', methods=['DELETE'])
+def delete_all_questions():
+    
+    if not is_admin_authenticated(request.headers.get('Authorization')):
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    print(f"== Service delete all questions")
+    
+    return '', 204
+
+
+"""
+Supprimer toutes les questions - DELETE /questions/all
+
+Cette fonction permet de supprimer toutes les questions (et leurs réponses respectives) du quiz.
+
+Authentification : Administrateur
+
+Paramètres d’URL : Aucun
+
+Retour : HTTP : 204 - No Content
+Payload de retour : vide
+"""
+@app.route('/questions/all', methods=['DELETE'])
+def delete_all_questions():
+
+    if not is_admin_authenticated(request.headers.get('Authorization')):
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    print("== Service delete ALL Questions")
+
+    return '', 204
 
 if __name__ == '__main__':
     app.run(debug=True)
