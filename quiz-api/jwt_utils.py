@@ -11,7 +11,7 @@ class JwtError(Exception):
         super().__init__(self.message)
 
 
-secret = "CHANGE ME"
+secret = "SECRET_TOKEN_JWT"
 expiration_in_seconds = 3600
 
 
