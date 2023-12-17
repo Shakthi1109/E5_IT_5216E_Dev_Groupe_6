@@ -21,12 +21,13 @@ CORS(app)
 @app.route('/')
 def main():
     
-    routes_get = ["/questions", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions"]
+    routes_get = ["/questions", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions", "/simulate-delete/questions-1","/simulate-delete/questions-all", "/simulate-delete/participations-all"]
     html = ""
     for r in routes_get : 
         html += f"<a href={r}><button>{r}</button></a><br/>"
     
     return html
+
 
 
 ######################################################################################################
@@ -69,15 +70,22 @@ def simulate_put(route):
     return response.json(), 200
 
 @app.route('/simulate-delete/<route>', methods=['GET'])
-def simulate_put(route):
-    routes_post = {"questions" : {"route_total" : "questions/1", "content": "La question a été changé", "Réponse": True}}
+def simulate_delete(route):
+    routes_post = {"questions-1" : {"route_total" : "questions/1", "content": "La question a été supprimé"}, 
+                   "questions-all" : {"route_total" : "questions/all", "content": "Toutes les questions ont été supprimé"},
+                   "participations-all" : {"route_total" : "participations/all", "content": "Toutes les questions ont été supprimé"}
+                   }
     data = routes_post[route]
     route = "/"+data["route_total"]
-    
+        
     response = simulate_request("delete", route, data)
-    return response.json(), 200
+    return "OK", 200
+
 
 ######################################################################################################
+
+
+
 
 """
 # GET quiz-info
@@ -356,7 +364,7 @@ def delete_question(questionId):
     print(f"== Service delete questions {questionId}")
     # Service delete 
 
-    return '', 204
+    return {}, 204
 
 """
 Supprimer toutes les questions - DELETE /questions/all
@@ -378,13 +386,13 @@ def delete_all_questions():
 
     print(f"== Service delete all questions")
     
-    return '', 204
+    return {}, 204
 
 
 """
-Supprimer toutes les questions - DELETE /questions/all
+Supprimer toutes les participations - DELETE /participations/all
 
-Cette fonction permet de supprimer toutes les questions (et leurs réponses respectives) du quiz.
+Cette fonction permet de supprimer toutes les participations du quiz.
 
 Authentification : Administrateur
 
@@ -393,15 +401,15 @@ Paramètres d’URL : Aucun
 Retour : HTTP : 204 - No Content
 Payload de retour : vide
 """
-@app.route('/questions/all', methods=['DELETE'])
-def delete_all_questions():
-
+@app.route('/participations/all', methods=['DELETE'])
+def delete_all_participations():
+    
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    print("== Service delete ALL Questions")
-
-    return '', 204
+    print("== Service delete ALL Participations")
+    
+    return {}, 204
 
 if __name__ == '__main__':
     app.run(debug=True)
