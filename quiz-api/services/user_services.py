@@ -1,32 +1,32 @@
 class UsersService : 
 
     @staticmethod
-    def getUserByEmail(email):
+    def get_user_by_email(email: str):
         print(email)
         return "user" 
 
     @staticmethod
-    def getPasswordByEmail(email):
+    def get_password_by_email(email: str):
         print(email)
         return "password"
 
     @staticmethod
-    def createUser(email, password):
-        print(email,password)
-        return True
-
-    @staticmethod
-    def deleteUser(email):
-        print(email)
-        return True 
-
-    @staticmethod
-    def updateUser(email, password):
+    def create_user(email: str, password: str):
         print(email, password)
         return True
 
     @staticmethod
-    def userIsAdmin(email):
+    def delete_user(email: str):
+        print(email)
+        return True 
+
+    @staticmethod
+    def update_user(email: str, password: str):
+        print(email, password)
+        return True
+
+    @staticmethod
+    def is_admin(email: str):
         print(email)
         return True
 
