@@ -1,21 +1,22 @@
 class ResultsService : 
 
     @staticmethod
-    def createResults(id_result, id_question):
+    def create_results(id_result, id_question):
         
         return True
 
+
     @staticmethod
-    def getResultsSorted():
+    def get_results_sorted():
         
         return []
 
     @staticmethod
-    def deleteResult(id_result):
+    def delete_result(id_result):
         
         return True
 
     @staticmethod
-    def deleteAllResults():
+    def delete_all_results():
         
         return True

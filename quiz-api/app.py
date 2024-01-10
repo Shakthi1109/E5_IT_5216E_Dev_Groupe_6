@@ -101,7 +101,7 @@ def simulate_delete(route):
     HTTP : 200 - Ok
     Payload de retour :
     - size : Entier positif retournant le nombre de questions contenues dans le quiz
-    - scores : tableau d’objets participationResult trié par scores décroissants et dont chaque entrée donne :
+    - scores : tableau d’objets participation trié par scores décroissants et dont chaque entrée donne :
         - playerName : nom du joueur
         - score : score obtenu à l’époque
         - date : date de la participation au format dd/MM/yyyy hh:mm:ss
@@ -109,8 +109,11 @@ def simulate_delete(route):
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
     
+    size = len(QuestionsService.get_questions())
+    scores = ParticipationsService.get_all_participations()
+    
     quiz_info = {
-        'size': 10,  # Nombre de questions dans le quiz
+        'size': size,  
         'scores': [
             {'playerName': 'Joueur1', 'score': 80, 'date': '01/01/2023 10:30:45'},
             {'playerName': 'Joueur2', 'score': 75, 'date': '02/01/2023 12:15:20'},
@@ -145,6 +148,9 @@ Payload de retour :
 """
 @app.route('/questions/<int:questionId>', methods=['GET'])
 def get_question_by_id(questionId):
+    
+    question = QuestionsService.get_question_by_id()
+    answers = QuestionsService.get_answers()
     
     question_data = {
         'id': 1,
@@ -187,6 +193,9 @@ Payload de retour :
 @app.route('/questions', methods=['GET'])
 def get_question_by_position():
     position = int(request.args.get('position', 1)) 
+    
+    question = QuestionsService.get_question_by_position(position)
+    
     question_data = {
         'id': 1,
         'title': f'Question {position}',
@@ -227,6 +236,10 @@ Payload de retour :
 def submit_participation():
     data = request.json # data de la request POST
     print(f"== POST Participations, Data :{data}")
+    
+    part = None
+    ParticipationsService.create_new_participation(part)
+    
     return data, 200
 
 
@@ -300,7 +313,8 @@ def create_question():
         return jsonify({'message': 'Unauthorized'}), 401
 
     data = request.json
-
+    question = None
+    QuestionsService.create_question(question)
     # Service Create question
 
     return {'OK': data}, 200
@@ -336,6 +350,8 @@ def update_question(questionId):
         return jsonify({'message': 'Unauthorized'}), 401
 
     data = request.json
+    question = None
+    QuestionsService.update_question(question)
 
     # Service update questions
     
@@ -361,6 +377,7 @@ def delete_question(questionId):
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
+    result = QuestionsService.delete_question_by_id(id)
     print(f"== Service delete questions {questionId}")
     # Service delete 
 
@@ -385,6 +402,7 @@ def delete_all_questions():
         return jsonify({'message': 'Unauthorized'}), 401
 
     print(f"== Service delete all questions")
+    QuestionsService.delete_all_questions()
     
     return {}, 204
 
@@ -408,6 +426,7 @@ def delete_all_participations():
         return jsonify({'message': 'Unauthorized'}), 401
 
     print("== Service delete ALL Participations")
+    ParticipationsService.delete_all_results()
     
     return {}, 204
 

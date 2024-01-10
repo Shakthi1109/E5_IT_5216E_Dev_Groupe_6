@@ -6,3 +6,10 @@
 ### Erwann MASSON
 ### Mathieu LESUR
 ### Shakthivel MURUGAVEL
+
+
+Instructions to run UI:
+
+cd quiz-ui
+npm install
+npm run dev

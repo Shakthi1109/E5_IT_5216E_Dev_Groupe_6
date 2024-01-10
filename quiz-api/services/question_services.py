@@ -5,7 +5,7 @@ from database_utils import convert_to_model
 class QuestionsService : 
 
     @staticmethod
-    def create_question(conn: Connection, titre: str, image: str, content_question: str):
+    def create_question(conn: Connection, question: Question):
         return True
 
     @staticmethod
@@ -16,15 +16,26 @@ class QuestionsService :
     @staticmethod
     def get_question_by_id(conn: Connection, id_question: str) -> Question:
         query = "SELECT * FROM Question WHERE id = ?;"
-        return convert_to_model(
-            conn.execute(query, (id_question,)),
-            Question
-        )
+        return convert_to_model(conn.execute(query, (id_question,)),Question)
+        
     
     @staticmethod
-    def delete_results(conn: Connection):
-        return True
-
+    def get_question_by_position(conn: Connection, position: int) -> Question:
+        return None
+    
     @staticmethod
-    def delete_result_by_id(conn: Connection, id_result: str):
-        return True
+    def delete_question_by_id(conn: Connection):
+        return None
+    
+    @staticmethod
+    def delete_all_questions():
+        return None
+    
+    @staticmethod
+    def update_question(conn: Connection, question, Question):
+        return None
+    
+    @staticmethod
+    def get_answers(id_question: str):
+        return None
+    

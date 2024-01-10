@@ -1,3 +1,5 @@
+## NE SERT À RIEN, VOIR POUR LA SUPPRIMER PLUS TARD
+
 class UsersService : 
 
     @staticmethod
@@ -29,5 +31,6 @@ class UsersService :
     def userIsAdmin(email):
         print(email)
         return True
+
 
     
