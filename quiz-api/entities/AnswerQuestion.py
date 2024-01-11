@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 @dataclass
-class AwnserQuestion :
+class AnswerQuestion :
     id: str = None 
     id_question: str = None 
     content: str = None
