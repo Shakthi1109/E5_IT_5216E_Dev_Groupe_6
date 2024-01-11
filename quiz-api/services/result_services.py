@@ -11,11 +11,11 @@ class ResultsService :
             "INSERT INTO ResultQuestion VALUES(%s, %s, %s);",
             *astuple(result)
         )
-
+        conn.commit()
 
     @staticmethod
-    def get_results_sorted(conn: Connection):
-        res = conn.execute("SELECT * FROM ResultQuestion ORDER BY id;")
+    def get_results_sorted(conn: Connection) -> list[ResultQuestion]:
+        res = conn.execute("SELECT * FROM ResultQuestion ORDER BY id;").fetchall()
         return convert_to_model(res, ResultQuestion)
 
     @staticmethod

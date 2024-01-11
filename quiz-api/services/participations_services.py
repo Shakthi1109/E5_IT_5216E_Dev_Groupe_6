@@ -22,5 +22,6 @@ class ParticipationsService :
         )
         conn.commit()
 
-    def get_all_participations(conn: Connection):
-        return convert_to_model(conn.execute("SELECT * FROM Participation;").fetchall(), Participation)
+    def get_all_participations(conn: Connection) -> list[Participation]:
+        res = conn.execute("SELECT * FROM Participation;").fetchall()
+        return convert_to_model(res, Participation)

@@ -20,13 +20,13 @@ class QuestionsService :
     
     @staticmethod
     def get_question_by_id(conn: Connection, id_question: str) -> Question:
-        query = "SELECT * FROM Question WHERE id = %s;"
-        return convert_to_model(conn.execute(query, (id_question,)),Question)
+        res = conn.execute("SELECT * FROM Question WHERE id = %s;", (id_question,)).fetchone()
+        return convert_to_model(res, Question)
 
     @staticmethod
     def get_question_by_position(conn: Connection, position: int) -> Question:
-        query = "SELECT * FROM Question WHERE position = %s;"
-        return convert_to_model(conn.execute(query, (position,)),Question)
+        res = conn.execute("SELECT * FROM Question WHERE position = %s;", (position,)).fetchone()
+        return convert_to_model(res, Question)
     
     @staticmethod
     def delete_question_by_id(conn: Connection, id_question: str):
@@ -54,6 +54,7 @@ class QuestionsService :
         conn.commit()
     
     @staticmethod
-    def get_answers(conn: Connection, id_question: str):
-        return convert_to_model(conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = %s", (id_question,)).fetchall(), AnswerQuestion)
+    def get_answers(conn: Connection, id_question: str) -> list[AnswerQuestion]:
+        res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = %s", (id_question,)).fetchall()
+        return convert_to_model(res, AnswerQuestion)
     
