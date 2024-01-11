@@ -22,7 +22,7 @@ CORS(app)
 @app.route('/')
 def main():
     
-    routes_get = ["/questions", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions", "/simulate-delete/questions-1","/simulate-delete/questions-all", "/simulate-delete/participations-all"]
+    routes_get = ["/questions", "/questions-all", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions", "/simulate-delete/questions-1","/simulate-delete/questions-all", "/simulate-delete/participations-all"]
     html = ""
     for r in routes_get : 
         html += f"<a href={r}><button>{r}</button></a><br/>"
@@ -54,7 +54,7 @@ def simulate_request(type, route, data):
 
 @app.route('/simulate-post/<route>', methods=['GET'])
 def simulate_post(route):
-    routes_post = {"/participations" : {'surnom':'Mathieu'}, "/login": {'password': 'your_password'}, "/questions": {'content': 'Quelle est la question ?'}}
+    routes_post = {"/participations" : {'surnom':'Mathieu'}, "/login": {'password': 'mot de passe'}, "/questions": {'content': 'Quelle est la question ?'}}
     route = "/"+route
     data = routes_post[route]
     
@@ -110,18 +110,22 @@ def simulate_delete(route):
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
     
-    size = len(QuestionsService.get_questions())
-    scores = ParticipationsService.get_all_participations()
+    questions = QuestionsService.get_questions(get_db_connection())
+    scores = ParticipationsService.get_all_participations(get_db_connection())
+    if(scores == None) : scores = []
     
     quiz_info = {
-        'size': size,  
-        'scores': [
-            {'playerName': 'Joueur1', 'score': 80, 'date': '01/01/2023 10:30:45'},
-            {'playerName': 'Joueur2', 'score': 75, 'date': '02/01/2023 12:15:20'},
-        ]
+        'size': len(questions),  
+        'scores': scores
     }
     
     return jsonify(quiz_info), 200
+
+@app.route('/questions-all', methods=['GET'])
+def get_question_all():
+    questions = QuestionsService.get_questions(get_db_connection())
+    
+    return jsonify({'questions': questions}), 200
 
 """
 Route pour récupérer une question par son identifiant
@@ -150,19 +154,21 @@ Payload de retour :
 @app.route('/questions/<int:questionId>', methods=['GET'])
 def get_question_by_id(questionId):
     
-    question = QuestionsService.get_question_by_id()
-    answers = QuestionsService.get_answers()
+    question = QuestionsService.get_question_by_id(get_db_connection(), str(questionId))
+    answers = QuestionsService.get_answers(get_db_connection(), str(questionId))
+    
+    if(question == None) :
+        return jsonify({"message": "La question correspondant à l'ID n'a pas été trouvé."}), 404
     
     question_data = {
-        'id': 1,
-        'title': 'Question 1',
-        'position': 1,
-        'text': 'Quelle est la capitale de la France?',
-        'image': 'base64_encoded_image_data',
-        'possibleAnswers': [
-            {'id': 1, 'text': 'Paris', 'isCorrect': True},
-            {'id': 2, 'text': 'Berlin', 'isCorrect': False},
-        ]
+        'question': {
+            'id': question.id,
+            'title': question.titre,
+            'position': question.position,
+            'text': question.question,
+            'image': question.image,
+            'possibleAnswers': answers
+        }
     }
     return jsonify(question_data), 200
 
@@ -193,20 +199,22 @@ Payload de retour :
 """
 @app.route('/questions', methods=['GET'])
 def get_question_by_position():
-    position = int(request.args.get('position', 1)) 
+    position = int(request.args.get('position', -1)) 
+    question = QuestionsService.get_question_by_position(get_db_connection(), position)
+    answers = QuestionsService.get_answers(get_db_connection(), position)
     
-    question = QuestionsService.get_question_by_position(position)
+    if(question == None) :
+        return jsonify({"message": "La question correspondant à la position donnée n'a pas été trouvée."}), 404
     
     question_data = {
-        'id': 1,
-        'title': f'Question {position}',
-        'position': position,
-        'text': f'Contenu de la question {position}',
-        'image': 'base64_encoded_image_data',
-        'possibleAnswers': [
-            {'id': 1, 'text': 'Réponse 1', 'isCorrect': True},
-            {'id': 2, 'text': 'Réponse 2', 'isCorrect': False},
-        ]
+        'question': {
+            'id': question.id,
+            'title': question.titre,
+            'position': question.position,
+            'text': question.question,
+            'image': question.image,
+            'possibleAnswers': answers
+        }
     }
     return jsonify(question_data), 200
 
@@ -230,18 +238,50 @@ Payload de retour :
 - answersSummaries : tableau de type answerSummary, dont chaque entrée donne, dans l’ordre des questions du quiz : 
     - correctAnswerPosition : position de la réponse correcte à la question
     - wasCorrect : état de la réponse fournie par le joueur
-    - playerName : nom du joueur tel qu’il a été saisi au début du quiz
-    - score : score obtenu
+- playerName : nom du joueur tel qu’il a été saisi au début du quiz
+- score : score obtenu
 """
 @app.route('/participations', methods=['POST'])
 def submit_participation():
-    data = request.json # data de la request POST
-    print(f"== POST Participations, Data :{data}")
+    data = request.json # data de la request POST 
+    """
+    data = {
+        'player_name': "Mathieu",
+        'answers': [{'question_id':"1", "answer_choice_id":"3"}]
+    }
+    """
     
-    part = None
-    ParticipationsService.create_new_participation(part)
+    player_name = data.get('player_name')
+    if(player_name == None or data.get('answers') == None):
+        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 404
     
-    return data, 200
+    answers = []
+    score = 0 
+    
+    for answer in data.get('answers') :
+        question_id = answer.get('question_id')
+        answer_choice = answer.get('answer_choice_id')
+        
+        correctAnswer = QuestionsService.get_good_answer_with_question_id(get_db_connection(), question_id)
+        correctAnswerPosition = None
+        
+        if(correctAnswer != None): correctAnswerPosition = correctAnswer.id
+        
+        wasCorrect = answer_choice == correctAnswerPosition 
+        answers.append({
+            'correctAnswerPosition':correctAnswerPosition,
+            'wasCorrect': wasCorrect
+        })
+        if(wasCorrect) : score += 1
+        
+
+    response = {
+        'answersSummaries': answers,
+        'playerName': player_name,
+        'score': score
+    }
+    
+    return jsonify(response), 200
 
 
 """
@@ -266,10 +306,11 @@ def admin_login():
     data = request.json
     print(f"== POST login, Data :{data}")
     provided_password = data.get('password', '')
-    admin_password = "motdepasse"
+    admin_password = "mot de passe"
     if provided_password == admin_password:
-        admin_token = build_token()
-        return jsonify({'token': admin_token}), 200
+        #admin_token = build_token()
+        admin_token = 'zdk240FQpa24'
+        return jsonify({'token': str(admin_token)}), 200
     else:
         return jsonify({'message': 'Mot de passe incorrect'}), 401  # Unauthorized
 
@@ -310,15 +351,52 @@ Payload de retour :
 @app.route('/questions', methods=['POST'])
 def create_question():
     
+    print("POST /questions")
+    
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
     data = request.json
-    question = None
-    QuestionsService.create_question(question)
-    # Service Create question
-
-    return {'OK': data}, 200
+    possibleAnswers = [{'text': 'La réponse A', 'isCorrect': True}, {'text': 'La réponse B', 'isCorrect':False}, {'text': 'La réponse C', 'isCorrect':False}, {'text': 'La réponse D', 'isCorrect':False}]
+    data = {
+        'title': "Titre de la question",
+        'text' : "Quelle est la question ?",
+        'image' : None,
+        'position' : 2,
+        'possibleAnswers' : possibleAnswers
+    }
+    
+    print(data)
+    
+    id = QuestionsService.get_numbers_questions(get_db_connection())
+    print("ID=",id)
+    
+    question = Question()
+    question.id = data.get(str( (int(id)+1) ))
+    question.position = data.get('position')
+    question.question = data.get('text')
+    question.titre = data.get('title')
+    question.image = data.get('image')
+    QuestionsService.create_question(get_db_connection(), question)
+    
+    print("Question saved : ",question)
+    
+    for answer in possibleAnswers:
+        print("1==")
+        answers = QuestionsService.get_answers(get_db_connection(), question.id) ;
+        if(answers == None) : answers = []
+        size = len(answers)
+        print("answers=", answers, size)
+        a = AnswerQuestion()
+        a.id = answer.get(str(size+1))
+        a.id_question = question.id
+        a.content = answer.get('text')
+        a.is_correct = answer.get('isCorrect')
+        print('A=',a)
+        QuestionsService.create_answer_question(get_db_connection(), a)
+        print("Created !")
+    
+    return {'id': question.id}, 200
 
 """
 Mettre à jour une question - PUT /questions/{questionId}

@@ -8,7 +8,7 @@ class ResultsService :
     @staticmethod
     def create_results(conn: Connection, result: ResultQuestion):
         conn.execute(
-            "INSERT INTO ResultQuestion VALUES(%s, %s, %s);",
+            "INSERT INTO ResultQuestion VALUES(?, ?, ?);",
             *astuple(result)
         )
         conn.commit()
@@ -20,7 +20,7 @@ class ResultsService :
 
     @staticmethod
     def delete_result(conn: Connection, id_result: str):
-        conn.execute("DELETE FROM ResultQuestion WHERE id = %s", (id_result,))
+        conn.execute("DELETE FROM ResultQuestion WHERE id = ?", (id_result,))
         conn.commit()
 
     @staticmethod
