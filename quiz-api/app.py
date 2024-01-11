@@ -6,6 +6,7 @@ from jwt_utils import *
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from services.question_services import *
+from services.participations_services import *
 
 def get_db_connection():
     SCRIPT_DIR = os.path.dirname(__file__)
