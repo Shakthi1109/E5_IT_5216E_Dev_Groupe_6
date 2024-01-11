@@ -1,4 +1,5 @@
 from entities.Question import Question
+from entities.AnswerQuestion import AnswerQuestion
 from sqlite3 import Connection
 from database_utils import convert_to_model
 from dataclasses import astuple
@@ -38,10 +39,21 @@ class QuestionsService :
         conn.commit()
     
     @staticmethod
-    def update_question(conn: Connection, question, Question):
-        return None
+    def update_question(conn: Connection, question: Question):
+        conn.execute(
+            """
+            UPDATE Question
+            SET position = %s,
+                question = %s,
+                titre = %s,
+                image = %s
+            WHERE id = %s;
+            """,
+            (question.position, question.question, question.titre, question.image, question.id)
+        )
+        conn.commit()
     
     @staticmethod
-    def get_answers(id_question: str):
-        return None
+    def get_answers(conn: Connection, id_question: str):
+        return convert_to_model(conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = %s", (id_question,)).fetchall(), AnswerQuestion)
     
