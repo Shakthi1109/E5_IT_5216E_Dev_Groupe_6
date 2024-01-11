@@ -7,6 +7,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from services.question_services import *
 from services.participations_services import *
+import uuid 
+
+def generate_uuid():
+    return str(uuid.uuid4())
 
 def get_db_connection():
     SCRIPT_DIR = os.path.dirname(__file__)
@@ -22,7 +26,7 @@ CORS(app)
 @app.route('/')
 def main():
     
-    routes_get = ["/questions", "/questions-all", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions", "/simulate-delete/questions-1","/simulate-delete/questions-all", "/simulate-delete/participations-all"]
+    routes_get = ["/questions", "/questions-all", "/answers-questions-all", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions", "/simulate-delete/questions-1","/simulate-delete/questions-all", "/simulate-delete/participations-all"]
     html = ""
     for r in routes_get : 
         html += f"<a href={r}><button>{r}</button></a><br/>"
@@ -68,7 +72,10 @@ def simulate_put(route):
     route = "/"+data["route_total"]
     
     response = simulate_request("put", route, data)
-    return response.json(), 200
+    resp = "OK"
+    if response != None : resp = str(response)
+    
+    return resp, 200
 
 @app.route('/simulate-delete/<route>', methods=['GET'])
 def simulate_delete(route):
@@ -112,10 +119,12 @@ def get_quiz_info():
     
     questions = QuestionsService.get_questions(get_db_connection())
     scores = ParticipationsService.get_all_participations(get_db_connection())
+    size = 0
     if(scores == None) : scores = []
+    if(questions != None) : len(questions)
     
     quiz_info = {
-        'size': len(questions),  
+        'size': size,  
         'scores': scores
     }
     
@@ -124,8 +133,12 @@ def get_quiz_info():
 @app.route('/questions-all', methods=['GET'])
 def get_question_all():
     questions = QuestionsService.get_questions(get_db_connection())
-    
     return jsonify({'questions': questions}), 200
+
+@app.route('/answers-questions-all', methods=['GET'])
+def get_answers_question_all():
+    a = QuestionsService.get_all_answers(get_db_connection())
+    return jsonify({'answers-questions': a}), 200
 
 """
 Route pour récupérer une question par son identifiant
@@ -304,7 +317,6 @@ Payload de retour :
 @app.route('/login', methods=['POST'])
 def admin_login():
     data = request.json
-    print(f"== POST login, Data :{data}")
     provided_password = data.get('password', '')
     admin_password = "mot de passe"
     if provided_password == admin_password:
@@ -351,12 +363,14 @@ Payload de retour :
 @app.route('/questions', methods=['POST'])
 def create_question():
     
-    print("POST /questions")
+    #print("POST /questions")
     
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
     data = request.json
+    possibleAnswers = data.get('possibleAnswers')
+    
     possibleAnswers = [{'text': 'La réponse A', 'isCorrect': True}, {'text': 'La réponse B', 'isCorrect':False}, {'text': 'La réponse C', 'isCorrect':False}, {'text': 'La réponse D', 'isCorrect':False}]
     data = {
         'title': "Titre de la question",
@@ -364,37 +378,25 @@ def create_question():
         'image' : None,
         'position' : 2,
         'possibleAnswers' : possibleAnswers
-    }
-    
-    print(data)
-    
-    id = QuestionsService.get_numbers_questions(get_db_connection())
-    print("ID=",id)
+    }    
     
     question = Question()
-    question.id = data.get(str( (int(id)+1) ))
+    question.id = generate_uuid()
     question.position = data.get('position')
     question.question = data.get('text')
     question.titre = data.get('title')
     question.image = data.get('image')
     QuestionsService.create_question(get_db_connection(), question)
     
-    print("Question saved : ",question)
+    #print("Question saved : ",question)
     
     for answer in possibleAnswers:
-        print("1==")
-        answers = QuestionsService.get_answers(get_db_connection(), question.id) ;
-        if(answers == None) : answers = []
-        size = len(answers)
-        print("answers=", answers, size)
         a = AnswerQuestion()
-        a.id = answer.get(str(size+1))
+        a.id = generate_uuid()
         a.id_question = question.id
         a.content = answer.get('text')
         a.is_correct = answer.get('isCorrect')
-        print('A=',a)
         QuestionsService.create_answer_question(get_db_connection(), a)
-        print("Created !")
     
     return {'id': question.id}, 200
 
@@ -420,21 +422,43 @@ Paramètres de corps de requête :
 Retour : HTTP : 204 - No Content
 Payload de retour : vide
 """
-@app.route('/questions/<int:questionId>', methods=['PUT'])
+@app.route('/questions/<questionId>', methods=['PUT'])
 def update_question(questionId):
-    
-    print(f"== UPDATE Question : {questionId}")
     
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
     data = request.json
-    question = None
-    QuestionsService.update_question(question)
-
-    # Service update questions
+    possibleAnswers = data.get('possibleAnswers')
     
-    return {'OK': data}, 200
+    questionId = '43a00831-1b67-408e-8ff7-cbb39cbd4c51'
+    possibleAnswers = [{'text': 'La réponse A', 'isCorrect': True}, {'text': 'La réponse B', 'isCorrect':False}, {'text': 'La réponse C', 'isCorrect':False}, {'text': 'La réponse D', 'isCorrect':False}]
+    data = {
+        'title': "Titre de la question *updated",
+        'text' : "Quelle est la question ?",
+        'image' : None,
+        'position' : 2,
+        'possibleAnswers' : possibleAnswers
+    }
+    
+    question = Question()
+    question.id = questionId
+    question.position = data.get('position')
+    question.question = data.get('text')
+    question.titre = data.get('title')
+    question.image = data.get('image')
+    QuestionsService.update_question(get_db_connection(), question)
+    QuestionsService.delete_answers_question_by_id(get_db_connection(), question.id)
+    
+    for answer in possibleAnswers : 
+        a = AnswerQuestion()
+        a.id = generate_uuid()
+        a.id_question = question.id
+        a.content = answer.get('text')
+        a.is_correct = answer.get('isCorrect')
+        QuestionsService.create_answer_question(get_db_connection(), a)
+        
+    return jsonify({'ok': 'ok'}), 204
 
 
 """
@@ -450,14 +474,19 @@ Paramètres d’URL :
 Retour : HTTP : 204 - No Content
 Payload de retour : vide
 """
-@app.route('/questions/<int:questionId>', methods=['DELETE'])
+@app.route('/questions/<questionId>', methods=['DELETE'])
 def delete_question(questionId):
 
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    result = QuestionsService.delete_question_by_id(id)
-    print(f"== Service delete questions {questionId}")
+    #questionId = "43a00831-1b67-408e-8ff7-cbb39cbd4c51"
+    try:
+        result = QuestionsService.delete_question_by_id(get_db_connection(), questionId)
+        QuestionsService.delete_answers_question_by_id(get_db_connection(), questionId)
+    except:
+        pass
+    
     # Service delete 
 
     return {}, 204
@@ -480,8 +509,8 @@ def delete_all_questions():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    print(f"== Service delete all questions")
-    QuestionsService.delete_all_questions()
+    QuestionsService.delete_all_questions(get_db_connection())
+    QuestionsService.delete_all_anwsers_questions(get_db_connection())
     
     return {}, 204
 
@@ -504,9 +533,7 @@ def delete_all_participations():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    print("== Service delete ALL Participations")
-    ParticipationsService.delete_all_results()
-    
+    ResultsService.delete_all_results()
     return {}, 204
 
 if __name__ == '__main__':

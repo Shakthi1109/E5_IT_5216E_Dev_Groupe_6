@@ -9,6 +9,7 @@ class QuestionsService :
     @staticmethod
     def create_question(conn: Connection, question: Question):
         conn.execute("INSERT INTO Question VALUES(?, ?, ?, ?, ?);", (astuple(question)) )
+        conn.commit()
         return question
 
     @staticmethod
@@ -63,6 +64,11 @@ class QuestionsService :
         conn.commit()
     
     @staticmethod
+    def get_all_answers(conn: Connection) -> list[AnswerQuestion]:
+        res = conn.execute("SELECT * FROM AnswerQuestion;",).fetchall()
+        return convert_to_model(res, AnswerQuestion)
+    
+    @staticmethod
     def get_answers(conn: Connection, id_question: str) -> list[AnswerQuestion]:
         res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ?", (id_question,)).fetchall()
         return convert_to_model(res, AnswerQuestion)
@@ -77,3 +83,27 @@ class QuestionsService :
         res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ? AND is_correct = True;", (id_question,)).fetchone()
         return convert_to_model(res, Question)
     
+    @staticmethod
+    def update_answer_question(conn: Connection, ans: AnswerQuestion):
+        conn.execute(
+            """
+            UPDATE AnswerQuestion
+            SET id_question = ?,
+                content = ?,
+                is_correct = ?
+            WHERE id = ?;
+            """,
+
+            (ans.id_question, ans.content, ans.is_correct, ans.id)
+        )
+        conn.commit()
+        
+    @staticmethod
+    def delete_answers_question_by_id(conn: Connection, id_question: str):
+        conn.execute("DELETE FROM AnswerQuestion WHERE id_question = ?;", (id_question,))
+        conn.commit()
+    
+    @staticmethod
+    def delete_all_anwsers_questions(conn: Connection):
+        conn.execute("DELETE FROM AnswerQuestion;")
+        conn.commit()
