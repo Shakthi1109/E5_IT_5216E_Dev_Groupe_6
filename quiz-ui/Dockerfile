@@ -12,5 +12,4 @@ RUN npm install
 # construit l'app pour la production en la minifiant
 RUN npm run build
 
-EXPOSE 3000
 CMD [ "npm", "run", "dev" ]
