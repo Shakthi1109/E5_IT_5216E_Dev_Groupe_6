@@ -4,13 +4,10 @@ FROM node:20.10.0-alpine
 WORKDIR /app
 
 # copie 'package.json' et 'package-lock.json' (si disponible)
-COPY ./package*.json /app
+COPY ./ /app
 
 # installe les dépendances du projet
 RUN npm install
-
-# copie les fichiers et dossiers du projet dans le dossier de travail (par exemple : le dossier 'app')
-COPY . .
 
 # construit l'app pour la production en la minifiant
 RUN npm run build
