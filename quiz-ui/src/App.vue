@@ -13,6 +13,7 @@ import { RouterLink, RouterView } from 'vue-router'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <router-link to="/new-quiz">Start the quiz !</router-link>
       </nav>
     </div>
   </header>
