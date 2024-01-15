@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM node:20.10.0-alpine
 
 # définit le dossier 'app' comme dossier de travail
 WORKDIR /app
