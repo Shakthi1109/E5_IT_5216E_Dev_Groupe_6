@@ -1,5 +1,7 @@
 FROM node:20.10.0-alpine
 
+RUN npm install -g http-server
+
 # définit le dossier 'app' comme dossier de travail
 WORKDIR /app
 
@@ -12,5 +14,5 @@ RUN npm install
 # construit l'app pour la production en la minifiant
 RUN npm run build
 
-EXPOSE 3000
-CMD [ "npm", "run", "dev", "HOST=0.0.0.0"]
+EXPOSE 8080
+CMD [ "http-server", "dist" ]
