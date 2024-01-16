@@ -11,11 +11,13 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1>Home page</h1>
+    <div class="about">
+    <h1>This is home page</h1>
     
-    <!-- Display the list of scores using v-for -->
-    <div v-for="scoreEntry in registeredScores" v-bind:key="scoreEntry.date">
-      {{ scoreEntry.playerName }} - {{ scoreEntry.score }}
+      <!-- Display the list of scores using v-for -->
+      <div v-for="scoreEntry in registeredScores" v-bind:key="scoreEntry.date">
+        {{ scoreEntry.playerName }} - {{ scoreEntry.score }}
+      </div>
     </div>
   </div>
 </template>
