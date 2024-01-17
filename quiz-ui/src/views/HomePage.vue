@@ -30,14 +30,6 @@ onMounted(async () => {
   <div class="home">
     <h1>Welcome to the Home Page</h1>
 
-    <form @submit.prevent="submitForm" class="mt-3">
-      <div class="mb-3">
-        <label for="playerName" class="form-label">Player Name:</label>
-        <input v-model="username" type="text" class="form-control" id="playerName" placeholder="Enter your name" required>
-      </div>
-      <button @click="launchNewQuiz" type="submit" class="btn btn-primary">Submit</button>
-    </form>
-
     <!-- Display the list of scores -->
     <div v-if="registeredScores.length === 0" class="mt-3">No scores available.</div>
     <div v-else class="mt-3">
