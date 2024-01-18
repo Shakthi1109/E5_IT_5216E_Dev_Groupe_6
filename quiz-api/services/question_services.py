@@ -8,9 +8,118 @@ class QuestionsService :
 
     @staticmethod
     def create_question(conn: Connection, question: Question):
+        old_position = question.position
+        question.position = 0
+        """
+        question_position = QuestionsService.get_question_by_position(conn, question.position)
+        if(question_position != None):
+            question_position.position += 1
+            QuestionsService.update_question(conn, question_position)
+        """
         conn.execute("INSERT INTO Question VALUES(?, ?, ?, ?, ?);", (astuple(question)) )
         conn.commit()
+        print("===", old_position, question.position)
+        question.position = old_position
+        QuestionsService.update_question(conn, question)
+        """
+        question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)
+        if(question_position != None):
+            question_position.position += 1
+            QuestionsService.update_question(conn, question_position)
+        """
         return question
+    
+    @staticmethod
+    def get_question_by_position_with_not_id(conn, question_position, question_id):
+        query = "SELECT * FROM Question WHERE position = ? AND id != ? LIMIT 1;"
+        res = conn.execute(query, (question_position, question_id)).fetchone()
+        return convert_to_model(res, Question)
+    
+    @staticmethod
+    def get_highest_position(conn):
+        query = "SELECT MAX(position) FROM Question;"
+        result = conn.execute(query).fetchone()        
+        return result[0] if result else None
+
+    @staticmethod
+    def get_unassigned_positions(conn):
+        highest_position = QuestionsService.get_highest_position(conn)
+
+        if highest_position is None:
+            return []
+
+        used_positions = conn.execute("SELECT position FROM Question;").fetchall()
+        used_positions = [pos[0] for pos in used_positions]
+
+        all_positions = set(range(1, highest_position + 1))
+        unassigned_positions = list(all_positions - set(used_positions))
+
+        return unassigned_positions
+
+    
+    @staticmethod
+    def update_question(conn: Connection, question: Question):
+        
+        quest = QuestionsService.get_question_by_id(conn, question.id)
+        old_position = -1
+        if(quest != None): old_position = quest.position
+        query = "UPDATE Question SET position = ?, question = ?, titre = ?, image = ? WHERE id = ?;"
+        conn.execute(query, (question.position, question.question, question.titre, question.image, question.id))
+        conn.commit()
+                
+        if(old_position != question.position):
+            
+            direction = 1 
+            question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)            
+            highest_position = QuestionsService.get_highest_position(conn)
+            number_questions = QuestionsService.get_numbers_questions(conn)
+           
+            if(question_position == None) : 
+                return 
+            
+            if(old_position == 0) : 
+                old_position = number_questions
+                
+            last_id = question.id
+            
+            direction = 1 
+            if(question.position > old_position) : 
+                direction = -1
+            
+            start = min(question.position, old_position)
+            stop = max(number_questions, question.position)
+            
+            if(direction == -1) : start, stop = stop, start 
+                
+            for i in range(start, stop, direction):
+                quest = QuestionsService.get_question_by_position_with_not_id(conn, i, last_id) 
+                if(quest == None) : continue 
+                
+                last_id = quest.id
+                quest.position += direction
+                conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
+                conn.commit()
+            
+
+
+    @staticmethod
+    def update_question_position_void(conn: Connection):
+    
+        query = "UPDATE Question SET position = ?, question = ?, titre = ?, image = ? WHERE id = ?;"
+        highest_position = QuestionsService.get_highest_position(conn)
+        number_questions = QuestionsService.get_numbers_questions(conn)
+        
+        
+        if(highest_position > number_questions):
+            smallest_unassigned_position = min(QuestionsService.get_unassigned_positions(conn))
+            print("== ",smallest_unassigned_position, highest_position)
+            for i in range(smallest_unassigned_position+1, highest_position+1):
+                print("i=",i)
+                quest = QuestionsService.get_question_by_position(conn, i)
+                print("quest:", quest.question)
+                quest.position -= 1
+                conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
+                conn.commit()
 
     @staticmethod
     def get_questions(conn: Connection) -> list[Question]:
@@ -24,9 +133,10 @@ class QuestionsService :
         return count
     
     @staticmethod
-    def get_question_by_id(conn: Connection, id_question: str) -> Question:
+    def get_question_by_id(conn: Connection, id_question: str) -> Question :        
         res = conn.execute("SELECT * FROM Question WHERE id = ?;", (id_question,)).fetchone()
         return convert_to_model(res, Question)
+
 
     @staticmethod
     def get_question_by_position(conn: Connection, position: int) -> Question:
@@ -35,32 +145,45 @@ class QuestionsService :
     
     @staticmethod
     def delete_question_by_id(conn: Connection, id_question: str):
+        
+        quest = QuestionsService.get_question_by_id(conn, id_question)
+        if(quest == None) : return 
+        
+        position = quest.position
+        
         conn.execute("DELETE FROM Question WHERE id = ?;", (id_question,))
         conn.commit()
+        
+        query = "UPDATE Question SET position = ?, question = ?, titre = ?, image = ? WHERE id = ?;"
+        
+        nb_questions = QuestionsService.get_numbers_questions(conn)
+        for i in range(position+1, nb_questions+2) :
+            quest = QuestionsService.get_question_by_position(conn, i)
+            quest.position -= 1 
+            conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
+            conn.commit()
+
+        
+        
     
     @staticmethod
     def delete_all_questions(conn: Connection):
         conn.execute("DELETE FROM Question;")
         conn.commit()
-    
+        
     @staticmethod
-    def update_question(conn: Connection, question: Question):
-        conn.execute(
-            """
-            UPDATE Question
-            SET position = ?,
-                question = ?,
-                titre = ?,
-                image = ?
-            WHERE id = ?;
-            """,
-            (question.position, question.question, question.titre, question.image, question.id)
-        )
+    def question_exists(conn: Connection, question_id: str) -> bool :
+        query = "SELECT COUNT(*) FROM Question WHERE id = ?;"
+        result = conn.execute(query, (question_id,)).fetchone()
+        if result and result[0] != 0:
+            return True
+        else:
+            return False
         conn.commit()
-    
+
     @staticmethod
     def create_answer_question(conn: Connection, ans: AnswerQuestion):
-        conn.execute("INSERT INTO AnswerQuestion VALUES(?, ?, ?, ?);",(astuple(ans)))
+        conn.execute("INSERT INTO AnswerQuestion VALUES(?, ?, ?, ?, ?);",(astuple(ans)))
         conn.commit()
     
     @staticmethod
@@ -71,17 +194,43 @@ class QuestionsService :
     @staticmethod
     def get_answers(conn: Connection, id_question: str) -> list[AnswerQuestion]:
         res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ?", (id_question,)).fetchall()
+        l = convert_to_model(res, AnswerQuestion)
+        
+        if(l is None) : 
+            return [] ; 
+        
+        for ans in l :
+            if(ans.isCorrect == 0) : 
+                ans.isCorrect = False
+            else :
+                ans.isCorrect = True
+        
+        return l 
+    
+    @staticmethod
+    def get_answers_with_position(conn: Connection, id_question: str, index : int) -> AnswerQuestion:
+        res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ? AND position = ? ;", (id_question,index)).fetchone()
+        ans = convert_to_model(res, AnswerQuestion)
+        
+        if(ans is None) : 
+            return None ; 
+        
+        if(ans.isCorrect == 0) : 
+            ans.isCorrect = False
+        else :
+            ans.isCorrect = True
+    
+        return ans
+    
+    @staticmethod
+    def get_answer_by_id(conn: Connection, id_answer: str) -> AnswerQuestion:
+        res = conn.execute("SELECT * FROM AnswerQuestion WHERE id = ?;", (id_answer,)).fetchone()
         return convert_to_model(res, AnswerQuestion)
     
     @staticmethod
-    def get_answer_by_id(conn: Connection, id_answer: str) -> Question:
-        res = conn.execute("SELECT * FROM AnswerQuestion WHERE id = ?;", (id_answer,)).fetchone()
-        return convert_to_model(res, Question)
-    
-    @staticmethod
-    def get_good_answer_with_question_id(conn: Connection, id_question: str) -> Question:
-        res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ? AND is_correct = True;", (id_question,)).fetchone()
-        return convert_to_model(res, Question)
+    def get_good_answer_with_question_id(conn: Connection, id_question: str) -> AnswerQuestion:
+        res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ? AND isCorrect = True;", (id_question,)).fetchone()
+        return convert_to_model(res, AnswerQuestion)
     
     @staticmethod
     def update_answer_question(conn: Connection, ans: AnswerQuestion):
@@ -90,7 +239,7 @@ class QuestionsService :
             UPDATE AnswerQuestion
             SET id_question = ?,
                 content = ?,
-                is_correct = ?
+                isCorrect = ?
             WHERE id = ?;
             """,
 

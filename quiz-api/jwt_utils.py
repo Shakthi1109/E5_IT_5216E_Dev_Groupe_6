@@ -12,7 +12,7 @@ class JwtError(Exception):
 
 
 secret = "SECRET_TOKEN_JWT"
-expiration_in_seconds = 3600
+expiration_in_seconds = 360000000
 
 
 def build_token():

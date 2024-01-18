@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from services.question_services import *
 from services.participations_services import *
+from services.result_services import *
 import uuid 
 
 def generate_uuid():
@@ -117,11 +118,9 @@ def simulate_delete(route):
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
     
-    questions = QuestionsService.get_questions(get_db_connection())
+    size = QuestionsService.get_numbers_questions(get_db_connection())
     scores = ParticipationsService.get_all_participations(get_db_connection())
-    size = 0
     if(scores == None) : scores = []
-    if(questions != None) : len(questions)
     
     quiz_info = {
         'size': size,  
@@ -164,25 +163,27 @@ Payload de retour :
         - text : intitulé de la réponse
         - isCorrect : booléen indiquant si la réponse est la bonne ou non
 """
-@app.route('/questions/<int:questionId>', methods=['GET'])
+@app.route('/questions/<questionId>', methods=['GET'])
 def get_question_by_id(questionId):
     
     question = QuestionsService.get_question_by_id(get_db_connection(), str(questionId))
+
+    if(question == None) :
+        return {}, 404
+    
     answers = QuestionsService.get_answers(get_db_connection(), str(questionId))
     
-    if(question == None) :
-        return jsonify({"message": "La question correspondant à l'ID n'a pas été trouvé."}), 404
-    
     question_data = {
-        'question': {
+        #'question': {
             'id': question.id,
             'title': question.titre,
             'position': question.position,
             'text': question.question,
             'image': question.image,
             'possibleAnswers': answers
-        }
+        #}
     }
+    
     return jsonify(question_data), 200
 
 """
@@ -214,21 +215,23 @@ Payload de retour :
 def get_question_by_position():
     position = int(request.args.get('position', -1)) 
     question = QuestionsService.get_question_by_position(get_db_connection(), position)
-    answers = QuestionsService.get_answers(get_db_connection(), position)
     
     if(question == None) :
-        return jsonify({"message": "La question correspondant à la position donnée n'a pas été trouvée."}), 404
+        return {}, 404
+    
+    answers = QuestionsService.get_answers(get_db_connection(), question.id)
     
     question_data = {
-        'question': {
+        #'question': {
             'id': question.id,
             'title': question.titre,
             'position': question.position,
             'text': question.question,
             'image': question.image,
             'possibleAnswers': answers
-        }
+        #}
     }
+        
     return jsonify(question_data), 200
 
 
@@ -257,21 +260,38 @@ Payload de retour :
 @app.route('/participations', methods=['POST'])
 def submit_participation():
     data = request.json # data de la request POST 
-    """
-    data = {
-        'player_name': "Mathieu",
-        'answers': [{'question_id':"1", "answer_choice_id":"3"}]
-    }
-    """
+
+    player_name = data.get('playerName')
+    list_answers = data.get('answers')
     
-    player_name = data.get('player_name')
-    if(player_name == None or data.get('answers') == None):
-        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 404
+    if(player_name == None or list_answers == None):
+        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
     
-    answers = []
+    
+    nb_questions = QuestionsService.get_numbers_questions(get_db_connection())
+    
+    if(len(list_answers) != nb_questions) : 
+        return jsonify({"message": "Le nombre de réponse n'est pas suffisant. Il n'est pas égal au nombre de questions."}), 400
+    
+    
     score = 0 
     
-    for answer in data.get('answers') :
+    
+    index_position = 1 ; 
+    for answer_index in list_answers :
+        
+        question = QuestionsService.get_question_by_position(get_db_connection(), index_position)
+        answers_question = QuestionsService.get_answers_with_position(get_db_connection(), question.id, answer_index)
+        
+        if(answers_question == None):
+            print(">> NOOOONE")
+            continue 
+        
+        if(answers_question.isCorrect == True) :
+            score += 1
+        
+        index_position += 1 
+        """
         question_id = answer.get('question_id')
         answer_choice = answer.get('answer_choice_id')
         
@@ -286,6 +306,7 @@ def submit_participation():
             'wasCorrect': wasCorrect
         })
         if(wasCorrect) : score += 1
+        """
         
 
     response = {
@@ -318,15 +339,20 @@ Payload de retour :
 def admin_login():
     data = request.json
     provided_password = data.get('password', '')
-    admin_password = "mot de passe"
+    admin_password = "flask2023"
     if provided_password == admin_password:
-        #admin_token = build_token()
-        admin_token = 'zdk240FQpa24'
+        admin_token = build_token()
+        print(str(admin_token))
+        #admin_token = 'zdk240FQpa24'
         return jsonify({'token': str(admin_token)}), 200
     else:
         return jsonify({'message': 'Mot de passe incorrect'}), 401  # Unauthorized
 
 
+@app.route('/rebuild-db', methods=['POST'])
+def rebuild_db():
+    return 'Ok', 200
+    
 
 #####################################################################################
 #
@@ -336,8 +362,15 @@ def admin_login():
 
 def is_admin_authenticated(authorization_header):
     
+    
+    if(authorization_header == None) : 
+        return False 
     # utiliser decode_token()
-    return True 
+    
+    token = authorization_header.replace("Bearer ", "")
+    dec_token = decode_token(token)
+    return dec_token == 'quiz-app-admin'
+    
 
 
 """
@@ -371,15 +404,6 @@ def create_question():
     data = request.json
     possibleAnswers = data.get('possibleAnswers')
     
-    possibleAnswers = [{'text': 'La réponse A', 'isCorrect': True}, {'text': 'La réponse B', 'isCorrect':False}, {'text': 'La réponse C', 'isCorrect':False}, {'text': 'La réponse D', 'isCorrect':False}]
-    data = {
-        'title': "Titre de la question",
-        'text' : "Quelle est la question ?",
-        'image' : None,
-        'position' : 2,
-        'possibleAnswers' : possibleAnswers
-    }    
-    
     question = Question()
     question.id = generate_uuid()
     question.position = data.get('position')
@@ -388,15 +412,16 @@ def create_question():
     question.image = data.get('image')
     QuestionsService.create_question(get_db_connection(), question)
     
-    #print("Question saved : ",question)
-    
+    position_index_answer = 1
     for answer in possibleAnswers:
         a = AnswerQuestion()
         a.id = generate_uuid()
         a.id_question = question.id
-        a.content = answer.get('text')
-        a.is_correct = answer.get('isCorrect')
+        a.text = answer.get('text')
+        a.isCorrect = answer.get('isCorrect')
+        a.position = position_index_answer
         QuestionsService.create_answer_question(get_db_connection(), a)
+        position_index_answer += 1
     
     return {'id': question.id}, 200
 
@@ -428,35 +453,32 @@ def update_question(questionId):
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    data = request.json
+    data = request.json    
     possibleAnswers = data.get('possibleAnswers')
-    
-    questionId = '43a00831-1b67-408e-8ff7-cbb39cbd4c51'
-    possibleAnswers = [{'text': 'La réponse A', 'isCorrect': True}, {'text': 'La réponse B', 'isCorrect':False}, {'text': 'La réponse C', 'isCorrect':False}, {'text': 'La réponse D', 'isCorrect':False}]
-    data = {
-        'title': "Titre de la question *updated",
-        'text' : "Quelle est la question ?",
-        'image' : None,
-        'position' : 2,
-        'possibleAnswers' : possibleAnswers
-    }
-    
+   
     question = Question()
     question.id = questionId
     question.position = data.get('position')
     question.question = data.get('text')
     question.titre = data.get('title')
     question.image = data.get('image')
+    
+    if(QuestionsService.question_exists(get_db_connection(), question.id) == False):
+        return {}, 404
+    
     QuestionsService.update_question(get_db_connection(), question)
     QuestionsService.delete_answers_question_by_id(get_db_connection(), question.id)
     
+    position_index_answer = 1
     for answer in possibleAnswers : 
         a = AnswerQuestion()
         a.id = generate_uuid()
         a.id_question = question.id
-        a.content = answer.get('text')
-        a.is_correct = answer.get('isCorrect')
+        a.text = answer.get('text')
+        a.isCorrect = answer.get('isCorrect')
+        a.position = position_index_answer
         QuestionsService.create_answer_question(get_db_connection(), a)
+        position_index_answer += 1
         
     return jsonify({'ok': 'ok'}), 204
 
@@ -480,7 +502,10 @@ def delete_question(questionId):
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    #questionId = "43a00831-1b67-408e-8ff7-cbb39cbd4c51"
+
+    if(QuestionsService.question_exists(get_db_connection(), questionId) == False):
+        return {}, 404
+    
     try:
         result = QuestionsService.delete_question_by_id(get_db_connection(), questionId)
         QuestionsService.delete_answers_question_by_id(get_db_connection(), questionId)
@@ -533,7 +558,7 @@ def delete_all_participations():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    ResultsService.delete_all_results()
+    ResultsService.delete_all_results(get_db_connection())
     return {}, 204
 
 if __name__ == '__main__':
