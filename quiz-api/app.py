@@ -8,6 +8,7 @@ from flask_cors import CORS
 from services.question_services import *
 from services.participations_services import *
 from services.result_services import *
+from database_utils import generate_structure
 import uuid 
 
 def generate_uuid():
@@ -15,13 +16,18 @@ def generate_uuid():
 
 def get_db_connection():
     SCRIPT_DIR = os.path.dirname(__file__)
-    DATABASE_FILE = os.path.join(SCRIPT_DIR, 'database.db')
+    DATABASE_FILE = os.path.join(SCRIPT_DIR, 'quiz.db')
     conn = sqlite3.connect(DATABASE_FILE)
     conn.row_factory = sqlite3.Row
     return conn
 
 app = Flask(__name__)
 CORS(app)
+
+
+@app.before_first_request
+def setup_db():
+    generate_structure(get_db_connection())
 
 
 @app.route('/')

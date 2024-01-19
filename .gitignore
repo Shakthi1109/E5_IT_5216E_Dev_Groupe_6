@@ -4,6 +4,7 @@ node_modules
 
 #Perso files
 /infos/cdc.txt
+*.db
 
 # local env files
 .env.local
