@@ -7,9 +7,10 @@ class ParticipationsService :
 
     @staticmethod
     def delete_all_results(conn : Connection) -> None:
-        conn.execute("DELETE * FROM ResultQuestion;")
+        conn.execute("DELETE FROM Participation;")
         conn.commit()
-
+    
+    
     @staticmethod
     def delete_all_results_by_question(conn : Connection, id_question: str) -> None:
         conn.execute("DELETE * FROM ResultQuestion WHERE id_question = ?;", (id_question,))
@@ -17,12 +18,9 @@ class ParticipationsService :
     
     @staticmethod
     def create_new_participation(conn: Connection, part: Participation):
-        conn.execute(
-            "INSERT INTO Participation VALUES(?, ?, ?, ?);",
-            *astuple(part)
-        )
+        conn.execute("INSERT INTO Participation VALUES(?, ?, ?, ?);",(astuple(part)))
         conn.commit()
-
+    
     @staticmethod
     def get_all_participations(conn: Connection) -> list[Participation]:
         res = conn.execute("SELECT * FROM Participation;").fetchall()
