@@ -242,11 +242,8 @@ def create_question():
 ### Cette fonction permet de mettre à jour une question du quiz à partir de son identifiant base de données.
 """
 @app.route('/questions/<questionId>', methods=['PUT'])
+@is_admin_authenticated()
 def update_question(questionId):
-    
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
     data = request.json    
     possibleAnswers = data.get('possibleAnswers')
    
@@ -281,12 +278,8 @@ def update_question(questionId):
 ### Cette fonction permet de supprimer une question du quiz à partir de son identifiant en base de données.
 """
 @app.route('/questions/<questionId>', methods=['DELETE'])
+@is_admin_authenticated()
 def delete_question(questionId):
-
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
-
     if(QuestionsService.question_exists(get_db_connection(), questionId) == False):
         return {}, 404
     
@@ -302,11 +295,8 @@ def delete_question(questionId):
 ### Cette fonction permet de supprimer toutes les questions (et leurs réponses respectives) du quiz.
 """
 @app.route('/questions/all', methods=['DELETE'])
+@is_admin_authenticated()
 def delete_all_questions():
-    
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
     QuestionsService.delete_all_questions(get_db_connection())
     QuestionsService.delete_all_anwsers_questions(get_db_connection())
     
@@ -317,11 +307,8 @@ def delete_all_questions():
 ### Cette fonction permet de supprimer toutes les participations du quiz.
 """
 @app.route('/participations/all', methods=['DELETE'])
+@is_admin_authenticated()
 def delete_all_participations():
-    
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
     ParticipationsService.delete_all_participations(get_db_connection())
     return {}, 204
 
@@ -330,10 +317,8 @@ def delete_all_participations():
 ### Permet de rebuild la database
 """
 @app.route('/rebuild-db', methods=['POST'])
+@is_admin_authenticated()
 def rebuild_db():
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
     generate_structure(get_db_connection())
     return jsonify({'message': 'Ok'}), 200
 
