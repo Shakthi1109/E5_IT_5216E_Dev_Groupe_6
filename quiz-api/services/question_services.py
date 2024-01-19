@@ -94,27 +94,6 @@ class QuestionsService :
                 conn.commit()
             
 
-    """
-    @staticmethod
-    def update_question_position_void(conn: Connection):
-    
-        query = "UPDATE Question SET position = ?, question = ?, titre = ?, image = ? WHERE id = ?;"
-        highest_position = QuestionsService.get_highest_position(conn)
-        number_questions = QuestionsService.get_numbers_questions(conn)
-        
-        
-        if(highest_position > number_questions):
-            smallest_unassigned_position = min(QuestionsService.get_unassigned_positions(conn))
-            print("== ",smallest_unassigned_position, highest_position)
-            for i in range(smallest_unassigned_position+1, highest_position+1):
-                print("i=",i)
-                quest = QuestionsService.get_question_by_position(conn, i)
-                print("quest:", quest.question)
-                quest.position -= 1
-                conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
-                conn.commit()
-    """
-
     @staticmethod
     def get_questions(conn: Connection) -> list[Question]:
         res = conn.execute("SELECT * FROM Question;").fetchall()
