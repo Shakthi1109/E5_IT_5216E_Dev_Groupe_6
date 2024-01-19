@@ -31,23 +31,7 @@ def main():
 
 
 """
-# GET quiz-info
-    Cette fonction permet de récupérer des informations d’ordre général sur le quiz.
-
-## Authentification
-    Publique
-
-## Paramètres : 
-    Aucun
-    
-## Retour
-    HTTP : 200 - Ok
-    Payload de retour :
-    - size : Entier positif retournant le nombre de questions contenues dans le quiz
-    - scores : tableau d’objets participation trié par scores décroissants et dont chaque entrée donne :
-        - playerName : nom du joueur
-        - score : score obtenu à l’époque
-        - date : date de la participation au format dd/MM/yyyy hh:mm:ss
+### Cette fonction permet de récupérer des informations d’ordre général sur le quiz.
 """
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
@@ -56,7 +40,6 @@ def get_quiz_info():
     scores = ParticipationsService.get_all_participations(get_db_connection())
     if(scores == None) : scores = []
     
-    #scores = Participation.trier_participations_par_score(scores)
     participations = sorted(scores, key=lambda x: x.score, reverse=True)
     
     quiz_info = {
@@ -65,6 +48,7 @@ def get_quiz_info():
     }
     
     return jsonify(quiz_info), 200
+
 
 @app.route('/questions-all', methods=['GET'])
 def get_question_all():
@@ -77,28 +61,7 @@ def get_answers_question_all():
     return jsonify({'answers-questions': a}), 200
 
 """
-Route pour récupérer une question par son identifiant
-
-## GET /questions/{questionId}
-    Cette fonction permet de récupérer le contenu d’une question à partir de son identifiant de base de données.
-
-Authentification : Publique
-
-Paramètres d’URL : questionId - entier positif désignant l’identifiant de la question
-
-Retour : HTTP : 200 - Ok
-
-Payload de retour :
-- question : objet contenant les détails de la question
-    - id : id base de données de la question
-    - title : texte contenant le titre de la question
-    - position : position de la question dans le quiz (normalement identique au paramètre d’entrée...)
-    - text : intitulé de la question
-    - image : une image au format base 64 associée à la question
-    - possibleAnswers : liste des réponses possibles contenant chacune :
-        - id : id base de données de la réponse
-        - text : intitulé de la réponse
-        - isCorrect : booléen indiquant si la réponse est la bonne ou non
+### Route pour récupérer une question par son identifiant
 """
 @app.route('/questions/<questionId>', methods=['GET'])
 def get_question_by_id(questionId):
@@ -124,29 +87,7 @@ def get_question_by_id(questionId):
     return jsonify(question_data), 200
 
 """
-Route pour récupérer une question par sa position
-
-## GET /questions?position={position}
-    Cette fonction permet de récupérer le contenu d’une question à partir de sa position dans le quiz.
-
-Authentification : Publique
-
-Paramètres d’URL : 
-    - position : entier positif désignant le numéro de la question
-
-Retour : HTTP : 200 - Ok
-
-Payload de retour :
-- question : objet contenant les détails de la question
-    - id : id base de données de la question
-    - title : texte contenant le titre de la question
-    - position : position de la question dans le quiz (normalement identique au paramètre d’entrée...)
-    - text : intitulé de la question
-    - image : une image au format base 64 associée à la question
-    - possibleAnswers : liste des réponses possibles contenant chacune :
-        - id : id base de données de la réponse
-        - text : intitulé de la réponse
-        - isCorrect : booléen indiquant si la réponse est la bonne ou non
+### Route pour récupérer une question par sa position
 """
 @app.route('/questions', methods=['GET'])
 def get_question_by_position():
@@ -159,40 +100,19 @@ def get_question_by_position():
     answers = QuestionsService.get_answers(get_db_connection(), question.id)
     
     question_data = {
-        #'question': {
-            'id': question.id,
-            'title': question.titre,
-            'position': question.position,
-            'text': question.question,
-            'image': question.image,
-            'possibleAnswers': answers
-        #}
+        'id': question.id,
+        'title': question.titre,
+        'position': question.position,
+        'text': question.question,
+        'image': question.image,
+        'possibleAnswers': answers
     }
         
     return jsonify(question_data), 200
 
 
 """
-Route pour soumettre les réponses d'un joueur
-
-## POST /participations
-    Cette fonction permet d’envoyer la liste des réponses sélectionnées par un participant pour l’ensemble du quiz.
-    L’avantage est de permettre une validation d’un bloc de l’ensemble du questionnaire limitant ainsi fortement le nombre de cas à la marge susceptibles de générer des états incohérents.
-
-Authentification : publique
-
-Paramètres :
-    - player_name : le nom du joueur qui poste son questionnaire
-    - answers : la liste des positions de réponses choisies dans l’ordre des questions du quiz
-
-Retour : HTTP : 200 - Ok
-
-Payload de retour :
-- answersSummaries : tableau de type answerSummary, dont chaque entrée donne, dans l’ordre des questions du quiz : 
-    - correctAnswerPosition : position de la réponse correcte à la question
-    - wasCorrect : état de la réponse fournie par le joueur
-- playerName : nom du joueur tel qu’il a été saisi au début du quiz
-- score : score obtenu
+### Route pour soumettre les réponses d'un joueur
 """
 @app.route('/participations', methods=['POST'])
 def submit_participation():
@@ -210,10 +130,7 @@ def submit_participation():
     if(len(list_answers) != nb_questions) : 
         return jsonify({"message": "Le nombre de réponse n'est pas suffisant. Il n'est pas égal au nombre de questions."}), 400
     
-    
     score = 0 
-    
-    
     index_position = 1 ; 
     for answer_index in list_answers :
         
@@ -226,24 +143,7 @@ def submit_participation():
             score += 1
         
         index_position += 1 
-        """
-        question_id = answer.get('question_id')
-        answer_choice = answer.get('answer_choice_id')
-        
-        correctAnswer = QuestionsService.get_good_answer_with_question_id(get_db_connection(), question_id)
-        correctAnswerPosition = None
-        
-        if(correctAnswer != None): correctAnswerPosition = correctAnswer.id
-        
-        wasCorrect = answer_choice == correctAnswerPosition 
-        answers.append({
-            'correctAnswerPosition':correctAnswerPosition,
-            'wasCorrect': wasCorrect
-        })
-        if(wasCorrect) : score += 1
-        """
-        
-    
+       
     response = {
         'playerName': player_name,
         'score': score
@@ -261,21 +161,7 @@ def submit_participation():
 
 
 """
-Route pour se connecter en tant qu'administrateur
-
-## POST /login
-    Cette fonction permet d’obtenir un token d’authentification en tant qu’administrateur du site. 
-    Ce token n’est fourni que si le mot de passe fourni est évidemment le bon 
-
-Authentification : Publique
-
-Paramètres :
-    - password : mot de passe
-
-Retour : HTTP : 200 - Ok
-
-Payload de retour :
-- token : le token en question si le mot de passe est le bon
+### Route pour se connecter en tant qu'administrateur
 """
 @app.route('/login', methods=['POST'])
 def admin_login():
@@ -284,13 +170,13 @@ def admin_login():
     admin_password = "flask2023"
     if provided_password == admin_password:
         admin_token = build_token()
-        print(str(admin_token))
-        #admin_token = 'zdk240FQpa24'
         return jsonify({'token': str(admin_token)}), 200
     else:
         return jsonify({'message': 'Mot de passe incorrect'}), 401  # Unauthorized
 
-
+"""
+### Permet de rebuild la database
+"""
 @app.route('/rebuild-db', methods=['POST'])
 def rebuild_db():
     return 'Ok', 200
@@ -320,11 +206,8 @@ def login_required(f):
 
 """
 def is_admin_authenticated(authorization_header):
-    @wraps
-    
     if(authorization_header == None) : 
         return False 
-    # utiliser decode_token()
     
     token = authorization_header.replace("Bearer ", "")
     dec_token = decode_token(token)
@@ -333,24 +216,7 @@ def is_admin_authenticated(authorization_header):
 
 
 """
-Créer une nouvelle question - POST /questions
-
-Cette fonction permet d’ajouter une question au quiz.
-
-Authentification : Administrateur
-
-Paramètres du corps de requête :
-- title : le titre de la question
-- text : la question en tant que telle
-- image : image en base 64
-- position : la position de la question dans le quiz. Peut provoquer un décalage des positions des autres questions si cette position est déjà prise. Il est interdit de mettre une position supérieure au nombre de questions déjà en base.
-- possibleAnswers : liste des réponses possibles contenant chacune :
-  - text : l’intitulé de la réponse elle-même
-  - isCorrect : booléen indiquant si la réponse est la bonne ou non (vérification à prévoir pour éviter les doublons)
-
-Retour : HTTP : 200 - Ok
-Payload de retour :
-- id : identifiant en base de données de la question créée
+### Cette fonction permet d’ajouter une question au quiz.
 """
 @app.route('/questions', methods=['POST'])
 def create_question():
@@ -383,26 +249,7 @@ def create_question():
     return {'id': question.id}, 200
 
 """
-Mettre à jour une question - PUT /questions/{questionId}
-
-Cette fonction permet de mettre à jour une question du quiz à partir de son identifiant base de données.
-
-Authentification : Administrateur
-
-Paramètres d’URL :
-- questionId : identifiant en base de données de la question
-
-Paramètres de corps de requête :
-- title : le titre de la question
-- text : l’intitulé de la question
-- image : image en base 64
-- position : la position (potentiellement nouvelle) de la question dans le quiz. Peut provoquer un décalage des positions des autres questions si cette position est déjà prise. Il est interdit de mettre une position supérieure au nombre de questions déjà en base.
-- possibleAnswers : liste des réponses possibles contenant chacune :
-  - text : l’intitulé de la réponse
-  - isCorrect : booléen indiquant si la réponse est la bonne ou non (vérification à prévoir pour éviter les doublons)
-
-Retour : HTTP : 204 - No Content
-Payload de retour : vide
+### Cette fonction permet de mettre à jour une question du quiz à partir de son identifiant base de données.
 """
 @app.route('/questions/<questionId>', methods=['PUT'])
 def update_question(questionId):
@@ -441,17 +288,7 @@ def update_question(questionId):
 
 
 """
-Supprimer une question - DELETE /questions/{questionId}
-
-Cette fonction permet de supprimer une question du quiz à partir de son identifiant en base de données.
-
-Authentification : Administrateur
-
-Paramètres d’URL :
-- questionId : identifiant de la question en base de données
-
-Retour : HTTP : 204 - No Content
-Payload de retour : vide
+### Cette fonction permet de supprimer une question du quiz à partir de son identifiant en base de données.
 """
 @app.route('/questions/<questionId>', methods=['DELETE'])
 def delete_question(questionId):
@@ -474,16 +311,7 @@ def delete_question(questionId):
     return {}, 204
 
 """
-Supprimer toutes les questions - DELETE /questions/all
-
-Cette fonction permet de supprimer toutes les questions (et leurs réponses respectives) du quiz.
-
-Authentification : Administrateur
-
-Paramètres d’URL : Aucun
-
-Retour : HTTP : 204 - No Content
-Payload de retour : vide
+### Cette fonction permet de supprimer toutes les questions (et leurs réponses respectives) du quiz.
 """
 @app.route('/questions/all', methods=['DELETE'])
 def delete_all_questions():
@@ -498,16 +326,7 @@ def delete_all_questions():
 
 
 """
-Supprimer toutes les participations - DELETE /participations/all
-
-Cette fonction permet de supprimer toutes les participations du quiz.
-
-Authentification : Administrateur
-
-Paramètres d’URL : Aucun
-
-Retour : HTTP : 204 - No Content
-Payload de retour : vide
+### Cette fonction permet de supprimer toutes les participations du quiz.
 """
 @app.route('/participations/all', methods=['DELETE'])
 def delete_all_participations():
@@ -516,17 +335,9 @@ def delete_all_participations():
         return jsonify({'message': 'Unauthorized'}), 401
 
     ParticipationsService.delete_all_results(get_db_connection())
-    #ResultsService.delete_all_results(get_db_connection())
     return {}, 204
 
 if __name__ == '__main__':
-    app.run(debug=True, port=19485)#, host='0.0.0.0', port=5000)
+    app.run(debug=True, port=5000)
 
 
-
-"""
-@app.route('/questions')
-def questions():
-    conn = get_db_connection()
-    return QuestionsService.get_questions(conn)
-"""
