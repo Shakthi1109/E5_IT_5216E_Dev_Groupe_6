@@ -74,14 +74,12 @@ def get_question_by_id(questionId):
     answers = QuestionsService.get_answers(get_db_connection(), str(questionId))
     
     question_data = {
-        #'question': {
             'id': question.id,
             'title': question.titre,
             'position': question.position,
             'text': question.question,
             'image': question.image,
             'possibleAnswers': answers
-        #}
     }
     
     return jsonify(question_data), 200
