@@ -1,27 +1,57 @@
 import sqlite3
 import os
+import uuid 
 
-from jwt_utils import * 
-
-from datetime import datetime 
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from jwt_utils import *
 from services.question_services import *
 from services.participations_services import *
-import uuid 
+from database_utils import generate_structure 
+
+from datetime import datetime
+from typing import Callable
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from functools import wraps
 
 def generate_uuid():
     return str(uuid.uuid4())
 
 def get_db_connection():
     SCRIPT_DIR = os.path.dirname(__file__)
-    DATABASE_FILE = os.path.join(SCRIPT_DIR, 'database.db')
+    DATABASE_FILE = os.path.join(SCRIPT_DIR, 'quiz.db')
     conn = sqlite3.connect(DATABASE_FILE)
     conn.row_factory = sqlite3.Row
     return conn
 
+
+def is_admin_authenticated():
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            authorization_header = request.headers.get("Authorization")
+            if authorization_header is None:
+                return jsonify({'message': 'Unauthorized'}), 401
+            
+            token = authorization_header.replace("Bearer ", "")
+            print(token)
+            decoded = decode_token(token)
+            print(decoded)
+            
+            if decoded != "quiz-app-admin":
+                return jsonify({'message': 'Unauthorized'}), 401
+            
+            return func(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
 app = Flask(__name__)
 CORS(app)
+
+
+@app.before_first_request
+def setup_db():
+    generate_structure(get_db_connection())
 
 
 @app.route('/')
@@ -30,7 +60,7 @@ def main():
 
 
 """
-### Cette fonction permet de récupérer des informations d’ordre général sur le quiz.
+### Cette fonction permet de récupérer des informations d'ordre général sur le quiz.
 """
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
@@ -170,57 +200,20 @@ def admin_login():
         return jsonify({'token': str(admin_token)}), 200
     else:
         return jsonify({'message': 'Mot de passe incorrect'}), 401  # Unauthorized
-
-"""
-### Permet de rebuild la database
-"""
-@app.route('/rebuild-db', methods=['POST'])
-def rebuild_db():
-    return 'Ok', 200
     
 
 #####################################################################################
 #
 #                               ROUTE ADMIN
 #
-#####################################################################################
-from functools import wraps
-"""
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        
-        if(authorization_header == None) : 
-            return False 
-        
-        token = authorization_header.replace("Bearer ", "")
-        dec_token = decode_token(token)
-        return dec_token == 'quiz-app-admin'
-        
-        return f(*args, **kwargs)
-    
-    return decorated_function
+#####################################################################################Z
 
 """
-def is_admin_authenticated(authorization_header):
-    if(authorization_header == None) : 
-        return False 
-    
-    token = authorization_header.replace("Bearer ", "")
-    dec_token = decode_token(token)
-    return dec_token == 'quiz-app-admin'
-
-
-
-"""
-### Cette fonction permet d’ajouter une question au quiz.
+### Cette fonction permet d'ajouter une question au quiz.
 """
 @app.route('/questions', methods=['POST'])
+@is_admin_authenticated()
 def create_question():
-    
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
     data = request.json
     possibleAnswers = data.get('possibleAnswers')
     
@@ -331,6 +324,19 @@ def delete_all_participations():
 
     ParticipationsService.delete_all_participations(get_db_connection())
     return {}, 204
+
+
+"""
+### Permet de rebuild la database
+"""
+@app.route('/rebuild-db', methods=['POST'])
+def rebuild_db():
+    if not is_admin_authenticated(request.headers.get('Authorization')):
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    generate_structure(get_db_connection())
+    return jsonify({'message': 'Ok'}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
