@@ -213,11 +213,8 @@ def admin_login():
 ### Cette fonction permet d'ajouter une question au quiz.
 """
 @app.route('/questions', methods=['POST'])
+@is_admin_authenticated()
 def create_question():
-    
-    if not is_admin_authenticated(request.headers.get('Authorization')):
-        return jsonify({'message': 'Unauthorized'}), 401
-
     data = request.json
     possibleAnswers = data.get('possibleAnswers')
     
@@ -336,13 +333,12 @@ def delete_all_participations():
 ### Permet de rebuild la database
 """
 @app.route('/rebuild-db', methods=['POST'])
-@is_admin_authenticated
 def rebuild_db():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
     generate_structure(get_db_connection())
-    return jsonify({'message': 'Success'}), 200
+    return jsonify({'message': 'Ok'}), 200
 
 
 if __name__ == '__main__':
