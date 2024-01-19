@@ -60,24 +60,21 @@ class QuestionsService :
         conn.execute(query, (question.position, question.question, question.titre, question.image, question.id))
         conn.commit()
                 
+        ### Permet de ré-agencer toutes les positions des questions correctement
         if(old_position != question.position):
             
-            direction = 1 
             question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)            
             highest_position = QuestionsService.get_highest_position(conn)
             number_questions = QuestionsService.get_numbers_questions(conn)
            
-            if(question_position == None) : 
-                return 
-            
-            if(old_position == 0) : 
-                old_position = number_questions
+            if(question_position == None) : return 
+            if(old_position == 0) : old_position = number_questions
                 
             last_id = question.id
             
+            ### Si +1, décalage vers le haut, si -1 décalage des questions vers le bas
             direction = 1 
-            if(question.position > old_position) : 
-                direction = -1
+            if(question.position > old_position) : direction = -1
             
             start = min(question.position, old_position)
             stop = max(number_questions, question.position)
