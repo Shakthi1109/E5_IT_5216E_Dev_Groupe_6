@@ -27,74 +27,7 @@ CORS(app)
 
 @app.route('/')
 def main():
-    
-    routes_get = ["/questions", "/questions-all", "/answers-questions-all", "/quiz-info", "/questions/1", "/questions?position=1", "/simulate-post/participations", "/simulate-post/login", "/simulate-post/questions", "/simulate-put/questions", "/simulate-delete/questions-1","/simulate-delete/questions-all", "/simulate-delete/participations-all"]
-    html = ""
-    for r in routes_get : 
-        html += f"<a href={r}><button>{r}</button></a><br/>"
-    
-    return html
-
-
-
-######################################################################################################
-"""
-UNIQUEMENT POUR SIMULER LES TESTS
-"""
-import requests
-def simulate_request(type, route, data):
-    url = f"http://127.0.0.1:5000{route}"
-    headers = {'Content-Type': 'application/json'}  
-    response = None
-    
-    if type == "post":
-        response = requests.post(url, json=data, headers=headers)
-        
-    elif type == "put":
-        response = requests.put(url, json=data, headers=headers)
-        
-    elif type == "delete":
-        response = requests.delete(url, json=data, headers=headers)
-        
-    return response
-
-@app.route('/simulate-post/<route>', methods=['GET'])
-def simulate_post(route):
-    routes_post = {"/participations" : {'surnom':'Mathieu'}, "/login": {'password': 'mot de passe'}, "/questions": {'content': 'Quelle est la question ?'}}
-    route = "/"+route
-    data = routes_post[route]
-    
-    response = simulate_request("post", route, data)
-    return response.json(), 200
-
-@app.route('/simulate-put/<route>', methods=['GET'])
-def simulate_put(route):
-    routes_post = {"questions" : {"route_total" : "questions/1", "content": "La question a été changé", "Réponse": True}}
-    data = routes_post[route]
-    route = "/"+data["route_total"]
-    
-    response = simulate_request("put", route, data)
-    resp = "OK"
-    if response != None : resp = str(response)
-    
-    return resp, 200
-
-@app.route('/simulate-delete/<route>', methods=['GET'])
-def simulate_delete(route):
-    routes_post = {"questions-1" : {"route_total" : "questions/1", "content": "La question a été supprimé"}, 
-                   "questions-all" : {"route_total" : "questions/all", "content": "Toutes les questions ont été supprimé"},
-                   "participations-all" : {"route_total" : "participations/all", "content": "Toutes les questions ont été supprimé"}
-                   }
-    data = routes_post[route]
-    route = "/"+data["route_total"]
-        
-    response = simulate_request("delete", route, data)
-    return "OK", 200
-
-
-######################################################################################################
-
-
+    return "Hello world!"
 
 
 """
@@ -368,9 +301,26 @@ def rebuild_db():
 #                               ROUTE ADMIN
 #
 #####################################################################################
-
-def is_admin_authenticated(authorization_header):
+from functools import wraps
+"""
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        
+        if(authorization_header == None) : 
+            return False 
+        
+        token = authorization_header.replace("Bearer ", "")
+        dec_token = decode_token(token)
+        return dec_token == 'quiz-app-admin'
+        
+        return f(*args, **kwargs)
     
+    return decorated_function
+
+"""
+def is_admin_authenticated(authorization_header):
+    @wraps
     
     if(authorization_header == None) : 
         return False 
@@ -379,7 +329,7 @@ def is_admin_authenticated(authorization_header):
     token = authorization_header.replace("Bearer ", "")
     dec_token = decode_token(token)
     return dec_token == 'quiz-app-admin'
-    
+
 
 
 """
@@ -404,8 +354,6 @@ Payload de retour :
 """
 @app.route('/questions', methods=['POST'])
 def create_question():
-    
-    #print("POST /questions")
     
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
