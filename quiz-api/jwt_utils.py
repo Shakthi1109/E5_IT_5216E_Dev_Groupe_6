@@ -1,6 +1,5 @@
 import jwt
 import datetime
-from werkzeug.exceptions import Unauthorized
 
 class JwtError(Exception):
     """Exception raised for jwt errors in the quiz app 

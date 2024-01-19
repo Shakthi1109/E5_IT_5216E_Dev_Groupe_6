@@ -9,10 +9,6 @@ class AnswerQuestion :
     position : int = None
     
     def convert_int_to_bool(self):
-        if(self.isCorrect == 0) : 
-            self.isCorrect = False
-        else :
-            self.isCorrect = True
-        
+        self.isCorrect = True if self.isCorrect else False
         
     

@@ -8,7 +8,6 @@ class QuestionsService :
 
     @staticmethod
     def create_question(conn: Connection, question: Question):
-        
         old_position = question.position
         question.position = 0
         
@@ -23,19 +22,19 @@ class QuestionsService :
         return question
     
     @staticmethod
-    def get_question_by_position_with_not_id(conn, question_position, question_id):
+    def get_question_by_position_with_not_id(conn: Connection, question_position: int, question_id: str):
         query = "SELECT * FROM Question WHERE position = ? AND id != ? LIMIT 1;"
         res = conn.execute(query, (question_position, question_id)).fetchone()
         return convert_to_model(res, Question)
     
     @staticmethod
-    def get_highest_position(conn):
+    def get_highest_position(conn: Connection):
         query = "SELECT MAX(position) FROM Question;"
         result = conn.execute(query).fetchone()        
         return result[0] if result else None
 
     @staticmethod
-    def get_unassigned_positions(conn):
+    def get_unassigned_positions(conn: Connection):
         highest_position = QuestionsService.get_highest_position(conn)
 
         if highest_position is None:
@@ -61,10 +60,9 @@ class QuestionsService :
         conn.commit()
                 
         ### Permet de ré-agencer toutes les positions des questions correctement
-        if(old_position != question.position):
+        if (old_position != question.position):
             
-            question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)            
-            highest_position = QuestionsService.get_highest_position(conn)
+            question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)
             number_questions = QuestionsService.get_numbers_questions(conn)
            
             if(question_position == None) : return 
@@ -107,7 +105,6 @@ class QuestionsService :
         res = conn.execute("SELECT * FROM Question WHERE id = ?;", (id_question,)).fetchone()
         return convert_to_model(res, Question)
 
-
     @staticmethod
     def get_question_by_position(conn: Connection, position: int) -> Question:
         res = conn.execute("SELECT * FROM Question WHERE position = ?;", (position,)).fetchone()
@@ -117,7 +114,7 @@ class QuestionsService :
     def delete_question_by_id(conn: Connection, id_question: str):
         
         quest = QuestionsService.get_question_by_id(conn, id_question)
-        if(quest == None) : return 
+        if (quest == None): return 
         
         position = quest.position
         
@@ -133,9 +130,6 @@ class QuestionsService :
             conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
             conn.commit()
 
-        
-        
-    
     @staticmethod
     def delete_all_questions(conn: Connection):
         conn.execute("DELETE FROM Question;")
@@ -145,11 +139,7 @@ class QuestionsService :
     def question_exists(conn: Connection, question_id: str) -> bool :
         query = "SELECT COUNT(*) FROM Question WHERE id = ?;"
         result = conn.execute(query, (question_id,)).fetchone()
-        if result and result[0] != 0:
-            return True
-        else:
-            return False
-        conn.commit()
+        return result != None and len(result) > 0 and result[0] != 0
 
     @staticmethod
     def create_answer_question(conn: Connection, ans: AnswerQuestion):
@@ -164,25 +154,24 @@ class QuestionsService :
     @staticmethod
     def get_answers(conn: Connection, id_question: str) -> list[AnswerQuestion]:
         res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ?", (id_question,)).fetchall()
-        l = convert_to_model(res, AnswerQuestion)
+        as_list: list[AnswerQuestion] = convert_to_model(res, AnswerQuestion)
         
-        if(l is None) : 
-            return [] ; 
+        if as_list is None: 
+            return [] 
         
-        for ans in l :
+        for ans in as_list:
             ans.convert_int_to_bool()
-        return l 
+        return as_list
     
     @staticmethod
     def get_answers_with_position(conn: Connection, id_question: str, index : int) -> AnswerQuestion:
         res = conn.execute("SELECT * FROM AnswerQuestion WHERE id_question = ? AND position = ? ;", (id_question,index)).fetchone()
         ans = convert_to_model(res, AnswerQuestion)
         
-        if(ans is None) : 
-            return None ; 
+        if ans is None:
+            return None
         
         ans.convert_int_to_bool()
-    
         return ans
     
     @staticmethod
@@ -205,7 +194,6 @@ class QuestionsService :
                 isCorrect = ?
             WHERE id = ?;
             """,
-
             (ans.id_question, ans.content, ans.is_correct, ans.id)
         )
         conn.commit()
