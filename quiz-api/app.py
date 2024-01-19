@@ -1,16 +1,19 @@
 import sqlite3
 import os
+import uuid 
 
-from jwt_utils import * 
-
-from datetime import datetime 
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from jwt_utils import *
 from services.question_services import *
 from services.participations_services import *
 from services.result_services import *
-from database_utils import generate_structure
-import uuid 
+from database_utils import generate_structure 
+
+from datetime import datetime
+from typing import Callable
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from functools import wraps
+
 
 def generate_uuid():
     return str(uuid.uuid4())
@@ -21,6 +24,25 @@ def get_db_connection():
     conn = sqlite3.connect(DATABASE_FILE)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def is_admin_authenticated():
+    def decorator(func: Callable):
+        @wraps(func)
+        def wrapped(*args, **kwargs):
+            authorization_header = request.headers.get("Authorization")
+            if authorization_header is None:
+                return jsonify({'message': 'Unauthorized'}), 401
+            
+            token = authorization_header.replace("Bearer", "")
+            decoded = decode_token(token)
+            if decoded != "quiz-app-admiun":
+                return jsonify({'message': 'Unauthorized'}), 401
+            
+            return func(*args, **kwargs)
+        return wrapped
+    return decorator
+
 
 app = Flask(__name__)
 CORS(app)
@@ -37,7 +59,7 @@ def main():
 
 
 """
-### Cette fonction permet de récupérer des informations d’ordre général sur le quiz.
+### Cette fonction permet de récupérer des informations d'ordre général sur le quiz.
 """
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
@@ -185,37 +207,10 @@ def admin_login():
 #
 #                               ROUTE ADMIN
 #
-#####################################################################################
-from functools import wraps
-"""
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        
-        if(authorization_header == None) : 
-            return False 
-        
-        token = authorization_header.replace("Bearer ", "")
-        dec_token = decode_token(token)
-        return dec_token == 'quiz-app-admin'
-        
-        return f(*args, **kwargs)
-    
-    return decorated_function
+#####################################################################################Z
 
 """
-def is_admin_authenticated(authorization_header):
-    if(authorization_header == None) : 
-        return False 
-    
-    token = authorization_header.replace("Bearer ", "")
-    dec_token = decode_token(token)
-    return dec_token == 'quiz-app-admin'
-
-
-
-"""
-### Cette fonction permet d’ajouter une question au quiz.
+### Cette fonction permet d'ajouter une question au quiz.
 """
 @app.route('/questions', methods=['POST'])
 def create_question():
@@ -341,6 +336,7 @@ def delete_all_participations():
 ### Permet de rebuild la database
 """
 @app.route('/rebuild-db', methods=['POST'])
+@is_admin_authenticated
 def rebuild_db():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
