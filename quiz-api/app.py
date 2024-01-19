@@ -303,8 +303,6 @@ def delete_question(questionId):
     except:
         pass
     
-    # Service delete 
-
     return {}, 204
 
 """
