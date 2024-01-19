@@ -24,7 +24,7 @@ def get_db_connection():
     return conn
 
 
-def is_admin_authenticated():
+def is_admin_authenticated(*args):
     def decorator(func: Callable):
         @wraps(func)
         def wrapped(*args, **kwargs):
@@ -320,7 +320,7 @@ def delete_all_participations():
 @is_admin_authenticated()
 def rebuild_db():
     generate_structure(get_db_connection())
-    return jsonify({'message': 'Ok'}), 200
+    return 'Ok', 200
 
 
 if __name__ == '__main__':
