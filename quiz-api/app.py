@@ -14,7 +14,6 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from functools import wraps
 
-
 def generate_uuid():
     return str(uuid.uuid4())
 
@@ -102,14 +101,12 @@ def get_question_by_id(questionId):
     answers = QuestionsService.get_answers(get_db_connection(), str(questionId))
     
     question_data = {
-        #'question': {
             'id': question.id,
             'title': question.titre,
             'position': question.position,
             'text': question.question,
             'image': question.image,
             'possibleAnswers': answers
-        #}
     }
     
     return jsonify(question_data), 200
@@ -325,7 +322,7 @@ def delete_all_participations():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    ParticipationsService.delete_all_results(get_db_connection())
+    ParticipationsService.delete_all_participations(get_db_connection())
     return {}, 204
 
 

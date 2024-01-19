@@ -8,25 +8,18 @@ class QuestionsService :
 
     @staticmethod
     def create_question(conn: Connection, question: Question):
+        
         old_position = question.position
         question.position = 0
-        """
-        question_position = QuestionsService.get_question_by_position(conn, question.position)
-        if(question_position != None):
-            question_position.position += 1
-            QuestionsService.update_question(conn, question_position)
-        """
+        
         conn.execute("INSERT INTO Question VALUES(?, ?, ?, ?, ?);", (astuple(question)) )
         conn.commit()
-        print("===", old_position, question.position)
+        
         question.position = old_position
+        
+        ### Appel de update_question pour pouvoir trier correctement les questions
         QuestionsService.update_question(conn, question)
-        """
-        question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)
-        if(question_position != None):
-            question_position.position += 1
-            QuestionsService.update_question(conn, question_position)
-        """
+        
         return question
     
     @staticmethod
@@ -67,24 +60,21 @@ class QuestionsService :
         conn.execute(query, (question.position, question.question, question.titre, question.image, question.id))
         conn.commit()
                 
+        ### Permet de ré-agencer toutes les positions des questions correctement
         if(old_position != question.position):
             
-            direction = 1 
             question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)            
             highest_position = QuestionsService.get_highest_position(conn)
             number_questions = QuestionsService.get_numbers_questions(conn)
            
-            if(question_position == None) : 
-                return 
-            
-            if(old_position == 0) : 
-                old_position = number_questions
+            if(question_position == None) : return 
+            if(old_position == 0) : old_position = number_questions
                 
             last_id = question.id
             
+            ### Si +1, décalage vers le haut, si -1 décalage des questions vers le bas
             direction = 1 
-            if(question.position > old_position) : 
-                direction = -1
+            if(question.position > old_position) : direction = -1
             
             start = min(question.position, old_position)
             stop = max(number_questions, question.position)
@@ -100,26 +90,6 @@ class QuestionsService :
                 conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
                 conn.commit()
             
-
-
-    @staticmethod
-    def update_question_position_void(conn: Connection):
-    
-        query = "UPDATE Question SET position = ?, question = ?, titre = ?, image = ? WHERE id = ?;"
-        highest_position = QuestionsService.get_highest_position(conn)
-        number_questions = QuestionsService.get_numbers_questions(conn)
-        
-        
-        if(highest_position > number_questions):
-            smallest_unassigned_position = min(QuestionsService.get_unassigned_positions(conn))
-            print("== ",smallest_unassigned_position, highest_position)
-            for i in range(smallest_unassigned_position+1, highest_position+1):
-                print("i=",i)
-                quest = QuestionsService.get_question_by_position(conn, i)
-                print("quest:", quest.question)
-                quest.position -= 1
-                conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
-                conn.commit()
 
     @staticmethod
     def get_questions(conn: Connection) -> list[Question]:
@@ -200,11 +170,7 @@ class QuestionsService :
             return [] ; 
         
         for ans in l :
-            if(ans.isCorrect == 0) : 
-                ans.isCorrect = False
-            else :
-                ans.isCorrect = True
-        
+            ans.convert_int_to_bool()
         return l 
     
     @staticmethod
@@ -215,10 +181,7 @@ class QuestionsService :
         if(ans is None) : 
             return None ; 
         
-        if(ans.isCorrect == 0) : 
-            ans.isCorrect = False
-        else :
-            ans.isCorrect = True
+        ans.convert_int_to_bool()
     
         return ans
     
