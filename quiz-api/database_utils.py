@@ -37,10 +37,10 @@ def generate_structure(conn: Connection):
     )
     conn.execute("""
         CREATE TABLE IF NOT EXISTS Participation (
-            id     TEXT (36) PRIMARY KEY,
-            pseudo TEXT,
-            score  INTEGER,
-            date   TEXT
+            id         TEXT (36) PRIMARY KEY,
+            playername TEXT,
+            score      INTEGER,
+            date       TEXT
         );"""
     )
     conn.execute("""

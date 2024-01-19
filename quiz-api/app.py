@@ -362,11 +362,6 @@ def admin_login():
         return jsonify({'token': str(admin_token)}), 200
     else:
         return jsonify({'message': 'Mot de passe incorrect'}), 401  # Unauthorized
-
-
-@app.route('/rebuild-db', methods=['POST'])
-def rebuild_db():
-    return 'Ok', 200
     
 
 #####################################################################################
@@ -576,6 +571,16 @@ def delete_all_participations():
     ParticipationsService.delete_all_results(get_db_connection())
     #ResultsService.delete_all_results(get_db_connection())
     return {}, 204
+
+
+@app.route('/rebuild-db', methods=['POST'])
+def rebuild_db():
+    if not is_admin_authenticated(request.headers.get('Authorization')):
+        return jsonify({'message': 'Unauthorized'}), 401
+
+    generate_structure(get_db_connection())
+    return jsonify({'message': 'Success'}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=19485)#, host='0.0.0.0', port=5000)
