@@ -33,9 +33,7 @@ def is_admin_authenticated():
                 return jsonify({'message': 'Unauthorized'}), 401
             
             token = authorization_header.replace("Bearer ", "")
-            print(token)
             decoded = decode_token(token)
-            print(decoded)
             
             if decoded != "quiz-app-admin":
                 return jsonify({'message': 'Unauthorized'}), 401
@@ -64,7 +62,6 @@ def main():
 """
 @app.route('/quiz-info', methods=['GET'])
 def get_quiz_info():
-    
     size = QuestionsService.get_numbers_questions(get_db_connection())
     scores = ParticipationsService.get_all_participations(get_db_connection())
     if(scores == None) : scores = []
@@ -86,8 +83,8 @@ def get_question_all():
 
 @app.route('/answers-questions-all', methods=['GET'])
 def get_answers_question_all():
-    a = QuestionsService.get_all_answers(get_db_connection())
-    return jsonify({'answers-questions': a}), 200
+    answers = QuestionsService.get_all_answers(get_db_connection())
+    return jsonify({'answers-questions': answers}), 200
 
 """
 ### Route pour récupérer une question par son identifiant
@@ -97,7 +94,7 @@ def get_question_by_id(questionId):
     
     question = QuestionsService.get_question_by_id(get_db_connection(), str(questionId))
 
-    if(question == None) :
+    if (question == None) :
         return {}, 404
     
     answers = QuestionsService.get_answers(get_db_connection(), str(questionId))
@@ -121,7 +118,7 @@ def get_question_by_position():
     position = int(request.args.get('position', -1)) 
     question = QuestionsService.get_question_by_position(get_db_connection(), position)
     
-    if(question == None) :
+    if (question == None) :
         return {}, 404
     
     answers = QuestionsService.get_answers(get_db_connection(), question.id)
@@ -143,7 +140,9 @@ def get_question_by_position():
 """
 @app.route('/participations', methods=['POST'])
 def submit_participation():
-    data = request.json # data de la request POST 
+    data = request.json # data de la request POST
+    if not data:
+        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
 
     player_name = data.get('playerName')
     list_answers = data.get('answers')
@@ -193,6 +192,9 @@ def submit_participation():
 @app.route('/login', methods=['POST'])
 def admin_login():
     data = request.json
+    if not data:
+        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
+
     provided_password = data.get('password', '')
     admin_password = "flask2023"
     if provided_password == admin_password:
@@ -215,6 +217,9 @@ def admin_login():
 @is_admin_authenticated()
 def create_question():
     data = request.json
+    if not data:
+        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
+
     possibleAnswers = data.get('possibleAnswers')
     
     question = Question()
@@ -244,7 +249,10 @@ def create_question():
 @app.route('/questions/<questionId>', methods=['PUT'])
 @is_admin_authenticated()
 def update_question(questionId):
-    data = request.json    
+    data = request.json
+    if not data:
+        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
+  
     possibleAnswers = data.get('possibleAnswers')
    
     question = Question()
@@ -283,12 +291,9 @@ def delete_question(questionId):
     if(QuestionsService.question_exists(get_db_connection(), questionId) == False):
         return {}, 404
     
-    try:
-        result = QuestionsService.delete_question_by_id(get_db_connection(), questionId)
-        QuestionsService.delete_answers_question_by_id(get_db_connection(), questionId)
-    except:
-        pass
-    
+    QuestionsService.delete_question_by_id(get_db_connection(), questionId)
+    QuestionsService.delete_answers_question_by_id(get_db_connection(), questionId)
+
     return {}, 204
 
 """
