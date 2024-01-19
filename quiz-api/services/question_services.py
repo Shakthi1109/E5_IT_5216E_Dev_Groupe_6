@@ -8,25 +8,18 @@ class QuestionsService :
 
     @staticmethod
     def create_question(conn: Connection, question: Question):
+        
         old_position = question.position
         question.position = 0
-        """
-        question_position = QuestionsService.get_question_by_position(conn, question.position)
-        if(question_position != None):
-            question_position.position += 1
-            QuestionsService.update_question(conn, question_position)
-        """
+        
         conn.execute("INSERT INTO Question VALUES(?, ?, ?, ?, ?);", (astuple(question)) )
         conn.commit()
-        print("===", old_position, question.position)
+        
         question.position = old_position
+        
+        ### Appel de update_question pour pouvoir trier correctement les questions
         QuestionsService.update_question(conn, question)
-        """
-        question_position = QuestionsService.get_question_by_position_with_not_id(conn, question.position, question.id)
-        if(question_position != None):
-            question_position.position += 1
-            QuestionsService.update_question(conn, question_position)
-        """
+        
         return question
     
     @staticmethod
@@ -101,7 +94,7 @@ class QuestionsService :
                 conn.commit()
             
 
-
+    """
     @staticmethod
     def update_question_position_void(conn: Connection):
     
@@ -120,6 +113,7 @@ class QuestionsService :
                 quest.position -= 1
                 conn.execute(query, (quest.position, quest.question, quest.titre, quest.image, quest.id))
                 conn.commit()
+    """
 
     @staticmethod
     def get_questions(conn: Connection) -> list[Question]:
@@ -200,11 +194,7 @@ class QuestionsService :
             return [] ; 
         
         for ans in l :
-            if(ans.isCorrect == 0) : 
-                ans.isCorrect = False
-            else :
-                ans.isCorrect = True
-        
+            ans.convert_int_to_bool()
         return l 
     
     @staticmethod
@@ -215,10 +205,7 @@ class QuestionsService :
         if(ans is None) : 
             return None ; 
         
-        if(ans.isCorrect == 0) : 
-            ans.isCorrect = False
-        else :
-            ans.isCorrect = True
+        ans.convert_int_to_bool()
     
         return ans
     

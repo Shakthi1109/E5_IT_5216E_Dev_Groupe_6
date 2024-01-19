@@ -8,7 +8,6 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from services.question_services import *
 from services.participations_services import *
-from services.result_services import *
 import uuid 
 
 def generate_uuid():
@@ -332,7 +331,7 @@ def delete_all_participations():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    ParticipationsService.delete_all_results(get_db_connection())
+    ParticipationsService.delete_all_participations(get_db_connection())
     return {}, 204
 
 if __name__ == '__main__':

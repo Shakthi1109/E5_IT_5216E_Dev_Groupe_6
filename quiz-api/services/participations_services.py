@@ -6,14 +6,8 @@ from dataclasses import astuple
 class ParticipationsService : 
 
     @staticmethod
-    def delete_all_results(conn : Connection) -> None:
+    def delete_all_participations(conn : Connection) -> None:
         conn.execute("DELETE FROM Participation;")
-        conn.commit()
-    
-    
-    @staticmethod
-    def delete_all_results_by_question(conn : Connection, id_question: str) -> None:
-        conn.execute("DELETE * FROM ResultQuestion WHERE id_question = ?;", (id_question,))
         conn.commit()
     
     @staticmethod
