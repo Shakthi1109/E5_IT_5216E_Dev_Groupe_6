@@ -3,6 +3,7 @@ import os
 
 from jwt_utils import * 
 
+from datetime import datetime 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from services.question_services import *
@@ -128,9 +129,12 @@ def get_quiz_info():
     scores = ParticipationsService.get_all_participations(get_db_connection())
     if(scores == None) : scores = []
     
+    #scores = Participation.trier_participations_par_score(scores)
+    participations = sorted(scores, key=lambda x: x.score, reverse=True)
+    
     quiz_info = {
         'size': size,  
-        'scores': scores
+        'scores': participations
     }
     
     return jsonify(quiz_info), 200
@@ -289,9 +293,7 @@ def submit_participation():
         question = QuestionsService.get_question_by_position(get_db_connection(), index_position)
         answers_question = QuestionsService.get_answers_with_position(get_db_connection(), question.id, answer_index)
         
-        if(answers_question == None):
-            print(">> NOOOONE")
-            continue 
+        if(answers_question == None): continue 
         
         if(answers_question.isCorrect == True) :
             score += 1
@@ -314,12 +316,19 @@ def submit_participation():
         if(wasCorrect) : score += 1
         """
         
-
+    
     response = {
-        'answersSummaries': answers,
         'playerName': player_name,
         'score': score
     }
+    
+    part = Participation()
+    part.id = generate_uuid()
+    part.playerName = player_name
+    part.score = score 
+    part.date = datetime.now()
+    
+    ParticipationsService.create_new_participation(get_db_connection(), part)
     
     return jsonify(response), 200
 
@@ -564,11 +573,12 @@ def delete_all_participations():
     if not is_admin_authenticated(request.headers.get('Authorization')):
         return jsonify({'message': 'Unauthorized'}), 401
 
-    ResultsService.delete_all_results(get_db_connection())
+    ParticipationsService.delete_all_results(get_db_connection())
+    #ResultsService.delete_all_results(get_db_connection())
     return {}, 204
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, port=19485)#, host='0.0.0.0', port=5000)
 
 
 

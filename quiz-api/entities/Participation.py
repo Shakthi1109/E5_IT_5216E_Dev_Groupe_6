@@ -4,7 +4,7 @@ from datetime import datetime
 @dataclass
 class Participation :
     id: str = None 
-    pseudo: str = None
+    playerName: str = None
     score: int = 0
     date: datetime = None
 
