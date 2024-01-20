@@ -7,4 +7,3 @@ class Participation :
     playerName: str = None
     score: int = 0
     date: datetime = None
-

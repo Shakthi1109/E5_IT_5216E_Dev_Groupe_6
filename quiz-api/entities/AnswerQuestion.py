@@ -10,5 +10,3 @@ class AnswerQuestion :
     
     def convert_int_to_bool(self):
         self.isCorrect = True if self.isCorrect else False
-        
-    
