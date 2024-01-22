@@ -1,44 +1,3 @@
-<script>
-import quizApiService from "@/services/QuizApiService";
-
-export default {
-  name: "HomePage",
-  data() {
-    return {
-      registeredScores: [],
-      scoreColumns: []
-    };
-  },
-  async created() {
-    var quizInfoPromise = quizApiService.getQuizInfo();
-    var quizInfoAPIResult = await quizInfoPromise;
-    this.registeredScores = quizInfoAPIResult.data.scores;
-    this.updateScoreColumns();
-    console.log("Composant Home page 'created'");
-    console.log("Registered Scores :", this.registeredScores);
-  },
-  methods: {
-    topScores() {
-      const topThreeScores = this.registeredScores.slice(0, 3);
-      return topThreeScores.map((score, index) => ({
-        ...score,
-        stars: Array(3-index).fill(0)
-      }));
-    },
-    updateScoreColumns() {
-      const columnCount = Math.ceil(this.registeredScores.length / 10); 
-      this.scoreColumns = [];
-      for (let i = 0; i < columnCount; i++) {
-        const start = i * 10; 
-        const end = (i + 1) * 10;
-        const scores = this.registeredScores.slice(start, end);
-        this.scoreColumns.push({ id: i, scores });
-      }
-    }
-  }
-};
-</script>
-
 <template>
   <div>
     <div class="parallax-wrapper">
@@ -68,8 +27,8 @@ export default {
           <img src="/src/img/loreumPicsum.jpg" alt="rock" />
         </div>
         <div class="rounded-text">
-          Explore India<br>
-          <a href="#bottom" class="scroll-link"> Take the Quiz </a>
+          Welcome to the new world ! <br>
+          <a href="#bottom" class="scroll-link">Travel to the new world</a>
         </div>
         <span class="parallax-cover" id="bottom">
           <div class="afterHeader">
@@ -83,12 +42,12 @@ export default {
                 </div>
               </div>
               <div class="top-scores">
-                <h2>Toppers</h2>
+                <h2>Master of spiritual elevation</h2>
                 <div class="top-scores-list" >
                   <span v-for="(bestScore, index) in topScores()">
-                    <img v-if="index === 0"/>
-                    <img v-else-if="index === 1"/>
-                    <img v-else-if="index === 2"/>
+                    <img v-if="index === 0" />
+                    <img v-else-if="index === 1" />
+                    <img v-else-if="index === 2" />
                     - {{ bestScore.playerName }}
                   </span>
                 </div>
@@ -123,6 +82,48 @@ export default {
     </div>
   </div>
 </template>
+
+<script>
+import quizApiService from "@/services/QuizApiService";
+
+export default {
+  name: "HomePage",
+  data() {
+    return {
+      registeredScores: [],
+      scoreColumns: [] // Tableau pour stocker les colonnes de scores
+    };
+  },
+  async created() {
+    var quizInfoPromise = quizApiService.getQuizInfo();
+    var quizInfoAPIResult = await quizInfoPromise;
+    this.registeredScores = quizInfoAPIResult.data.scores;
+    this.updateScoreColumns(); // Appeler la fonction pour mettre à jour les colonnes de scores
+    console.log("Composant Home page 'created'");
+    console.log("Registered Scores :", this.registeredScores);
+  },
+  methods: {
+    topScores() {
+      const topThreeScores = this.registeredScores.slice(0, 3); // Récupérer uniquement les trois premiers scores
+      return topThreeScores.map((score, index) => ({
+        ...score,
+        stars: Array(3-index).fill(0) // Générer un tableau avec le nombre d'étoiles correspondant au score
+      }));
+    },
+    updateScoreColumns() {
+      const columnCount = Math.ceil(this.registeredScores.length / 10); // Calculer le nombre de colonnes nécessaires
+      this.scoreColumns = []; // Réinitialiser le tableau des colonnes
+      for (let i = 0; i < columnCount; i++) {
+        const start = i * 10; // Indice de début de la colonne
+        const end = (i + 1) * 10; // Indice de fin de la colonne
+        const scores = this.registeredScores.slice(start, end); // Extraire les scores pour la colonne actuelle
+        this.scoreColumns.push({ id: i, scores }); // Ajouter la colonne au tableau des colonnes
+      }
+    }
+  }
+};
+</script>
+
 
 <style>
 
