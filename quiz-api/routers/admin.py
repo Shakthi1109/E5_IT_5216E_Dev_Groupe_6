@@ -19,7 +19,7 @@ admin_page = Blueprint("admin_page", __name__)
 def create_question():
     data = request.json
     if not data:
-        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
+        return jsonify({"message": "La requete envoyée ne possède pas le bon format."}), 400
 
     possibleAnswers = data.get('possibleAnswers')
     
@@ -53,7 +53,7 @@ def create_question():
 def update_question(questionId):
     data = request.json
     if not data:
-        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
+        return jsonify({"message": "La requete envoyée ne possède pas le bon format."}), 400
   
     possibleAnswers = data.get('possibleAnswers')
    

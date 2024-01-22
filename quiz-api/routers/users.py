@@ -147,7 +147,7 @@ def submit_participation():
 def admin_login():
     data = request.json
     if not data:
-        return jsonify({"message": "La participation envoyée ne possède pas le bon format."}), 400
+        return jsonify({"message": "La requete envoyée ne possède pas le bon format."}), 400
 
     provided_password = data.get('password', '')
     admin_password = "flask2023"
