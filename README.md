@@ -7,9 +7,26 @@
 ### Mathieu LESUR
 ### Shakthivel MURUGAVEL
 
+Instructions to run:
 
-Instructions to run UI:
+cd to quiz-app(root)/quiz-ui:
+
+docker image build -t quiz-local-ui .
+docker container run -it --rm -p 3000:80 --name quiz-local-ui quiz-local-ui
+
+Access http://localhost:3000
+
+cd to quiz-app(root)/quiz-api:
+docker image build -t quiz-local-api .
+docker container run -it --rm -p 5000:5000 --name quiz-local-api quiz-local-api
+
+Access http://localhost:5000
+
+
+
+
+<!-- UI local:
 
 cd quiz-ui
 npm install
-npm run dev
+npm run dev -->
