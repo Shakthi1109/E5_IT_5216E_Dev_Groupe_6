@@ -96,6 +96,7 @@ bottom: 0;
 .score-container {
 text-align: center;
 color: #ffffff;
+margin-top: 100px;
 }
 .score-board {
 margin-bottom: 1.5rem;

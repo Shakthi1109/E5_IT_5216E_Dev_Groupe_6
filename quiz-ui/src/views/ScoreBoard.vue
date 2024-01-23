@@ -1,12 +1,15 @@
 <template>
-  <div class="ScoreBoard">
-    <h3 class="endGame"> Game Over </h3>
-    <div class="grid-container">
-      <div class="playerName">
-        <h2>Pseudo : {{ playername }}</h2>
-        <p class="yourScores">Your score : {{ sessionScore }}</p>
-        <p class="ranking">Ranking : {{ ranking }}</p>
+  <div class="scoreboard-screen">
+    <div class="ScoreBoard">
+      <h3 class="endGame"> Game Over </h3>
+      <div class="grid-container">
+        <div class="playerName">
+          <h2>Name : {{ playername }}</h2>
+          <p class="yourScores">Score : {{ sessionScore }}</p>
+          <p class="ranking">Player : {{ ranking-1 }}</p>
+        </div>
       </div>
+      <button class="custom-button1" @click="backToHomePage">Back to Home</button>  
     </div>
   </div>
 </template>
@@ -76,21 +79,46 @@ export default {
   },
 };
 </script>
+
 <style>
-.ScoreBoard {
+
+.scoreboard-screen {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; 
+}
+
+/* Apply styles to elements within the scoreboard screen */
+.scoreboard-screen .ScoreBoard {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100vh;
-  padding: 2rem;
   color: #FFFFFF;
   text-align: center;
 }
 
+.custom-button1 {
+  padding: 12px 35px;
+  background: #41d215;
+  font-size: 17px;
+  font-weight: 500;
+  color: white;
+  border: 3px solid #ffffff;
+  border-radius: 8px;
+  margin-top: 1em;
+  cursor: pointer;
+  padding: 15px;
+  right: 10px;
+}
+
+.custom-button1:hover {
+  color: #000000;
+}
+
 .playerName {
   margin-bottom: 2em;
-  margin-left: -17em;
   text-align: center;
 }
 
@@ -125,4 +153,6 @@ export default {
   margin-top: 1em;
 }
 </style>
+
+
 

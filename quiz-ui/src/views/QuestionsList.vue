@@ -1,6 +1,6 @@
 <template>
   <div class="AdminArea">
-    <h3>Admin Area</h3>
+    <h3>Admin</h3>
     <router-link to="/question-creation">
       <button class="button">New question</button>
     </router-link>
@@ -8,7 +8,7 @@
     <button class="button" @click="deleteQuestions">Delete All Questions</button>
     <p></p>
     <h3>Questions List :</h3>
-    <div v-for="(question, index) in questionsList" :key="index" @click="editQuestion(question)">
+    <div v-for="(question, index) in questionsList" :key="index" @click="editQuestion(question)" class="question-item">
       <div v-if="question">
         Question Number : {{ question.position }} <br>
         Question : {{ question.title }} <br>
@@ -18,7 +18,7 @@
         Question undefinded <br><br>
       </div>
     </div>
-    <button @click="logoutAdmin" class="glow-on-hover">Disconnect</button>
+    <button @click="logoutAdmin" class="button">Disconnect</button>
 
     <div v-if="showPopup" class="popup">
       {{ popupMessage }}
@@ -115,6 +115,14 @@ export default {
   color: #FFFFFF;
 }
 
+.question-item {
+  cursor: pointer;
+}
+
+.question-item:hover {
+  color: #41d215; /* Change to the desired hover color */
+}
+
 .popup {
   position: relative;
   text-align: center;
@@ -123,5 +131,23 @@ export default {
   font-size: 1.2rem;
   border-radius: 5px;
   z-index: 999;
+}
+
+.button {
+  padding: 12px;
+  margin-right: 10px;
+  background: #41d215;
+  font-size: 15px;
+  color: white;
+  border: 3px solid #ffffff;
+  border-radius: 8px;
+  margin-top: 1em;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.button:hover {
+  color: #000000;
 }
 </style>

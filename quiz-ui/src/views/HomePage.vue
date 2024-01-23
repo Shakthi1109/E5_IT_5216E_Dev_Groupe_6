@@ -144,12 +144,5 @@ h4 {
   font-size: 24px;
 }
 
-.top-scores-list1 img {
-  width: 40px;
-  margin-left: 20px;
-}
 
-.top-scores-list1 span:not(:last-child) {
-  margin-right: 10px;
-}
 </style>

@@ -53,8 +53,8 @@
       </p>
     
       </div>
-      <button @click="backToQuestionList" class="glow-on-hover">Previous</button>
-      <button @click="createQuestion" class="glow-on-hover">Create</button>
+      <button @click="backToQuestionList" class="button">Previous</button>
+      <button @click="createQuestion" class="button">Create</button>
     </div>
     </template>
     
@@ -136,6 +136,23 @@ export default {
   margin-top: 5rem;
   color: #FFFFFF;
   text-align: center;
+}
+
+.button {
+  padding: 12px;
+  background: #41d215;
+  font-size: 15px;
+  color: white;
+  border: 3px solid #ffffff;
+  border-radius: 8px;
+  margin-top: 1em;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.button:hover {
+  color: #000000;
 }
 </style>
  

@@ -1,20 +1,20 @@
 <!-- Shak -->
 <template>
-  <div class="wrapper-class">
-  <div class="wrapper">
+  <div class="wrapper-class2">
+  <div class="wrapper2">
   <div class="about">
     <h1>Developers</h1>
     <div class="row">
       <div class="col-md-4">
         <div class="card">
-          <img src="/src/assets/img/Shak.jpg"/>
+          <img src="/src/assets/img/racer.png"/>
           <h3>Raccer</h3>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card">
-          <img src="/src/assets/img/Shak.jpg"/>
-          <h3>Hitsuji</h3>
+          <img src="/src/assets/img/erwan.png"/>
+          <h3>Erwann</h3>
         </div>
       </div>
       <div class="col-md-4">
@@ -24,7 +24,7 @@
         </div>
       </div>
     </div>
-    <p class="pAbout">Quiz App to encourage you to discover more about a topic.</p>
+    <p class="pAbout">The Quiz App encourages you to discover more about any topic of your choice.</p>
   </div>
   </div>
   </div>
@@ -32,16 +32,15 @@
 
 <style>
  
- .wrapper-class {
+ .wrapper-class2 {
   position: relative;
   height: 100vh;
   width: 100%;
-  overflow: hidden;
+  overflow: hidden; /* Add this line to prevent scrolling */
 }
 
-.wrapper {
+.wrapper2 {
   perspective: 100px;
-  background-color: #000000;
   overflow-x: hidden;
   overflow-y: auto;
   position: absolute;
@@ -65,10 +64,6 @@
 h1 {
   font-size: 36px;
   margin-bottom: 30px;
-}
-
-body {
-  background-color: #000000;
 }
 
 .card {

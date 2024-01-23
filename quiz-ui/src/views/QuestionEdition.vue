@@ -3,7 +3,7 @@
     <div v-if=this.question>
       <p>
       <h1>Delete question {{ this.question.position }} : </h1>
-      <button @click="deleteQuestion()">Delete</button>
+      <button class="button" @click="deleteQuestion()">Delete</button>
     </p>
       <h1>Edit question {{ this.question.position }} : </h1>
       <div>
@@ -26,7 +26,7 @@
 
         <p>Image
           <br>
-        <button @click="changeImageQuestion()">Change question's picture</button>
+        <button @click="changeImageQuestion()" class="button">Change question's picture</button>
         <div v-show="display">
           <ImageUpload @file-change="imageFileChangedHandler" v-model="image"/>
         </div>
@@ -41,8 +41,9 @@
         </div>
       </div>
     </div>
-    <button @click="backToQuestionList" class="glow-on-hover">Previous</button>
-    <button v-bind:disabled="correctAnswerIndex === null" @click="editQuestion" class="glow-on-hover">Edit</button>
+    <p></p>
+    <button class="button" @click="backToQuestionList">Previous</button>
+    <button v-bind:disabled="correctAnswerIndex === null" @click="editQuestion" class="button">OK</button>
   </div>
 </template>
 
@@ -139,5 +140,22 @@ export default {
   margin-top: 5rem;
   color: #FFFFFF;
   text-align: center;
+}
+
+.button {
+  padding: 12px;
+  background: #41d215;
+  font-size: 15px;
+  color: white;
+  border: 3px solid #ffffff;
+  border-radius: 8px;
+  margin-top: 1em;
+  cursor: pointer;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.button:hover {
+  color: #000000;
 }
 </style>
