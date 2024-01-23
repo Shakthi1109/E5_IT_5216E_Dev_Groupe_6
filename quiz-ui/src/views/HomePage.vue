@@ -2,12 +2,12 @@
   <div>
     <div class="wrapper-class">
       <div class="wrapper">
-        
+
         <div class="rounded-text">
-          Start the Quiz ! 
+          Start the Quiz !
           <p></p>
           <router-link to="/start-new-quiz-page" class="glow-on-hover">
-              <button class="custom-button">Take Quiz</button>
+            <button :disabled="isDisabled" class="custom-button">Take Quiz</button>
           </router-link>
         </div>
 
@@ -16,10 +16,43 @@
   </div>
 </template>
 
+<script>
+import QuizApiService from "@/services/QuizApiService";
+
+export default {
+  name: 'HomePage',
+  data() {
+    return {
+      isDisabled: false
+    };
+  },
+  async created() {
+    this.checkQuestions();
+  },
+  methods: {
+    async checkQuestions() {
+      try {
+        const getAllQuestionsAPIResult = await QuizApiService.getAllQuestions();
+        if (getAllQuestionsAPIResult.status === 200) {
+          const questions = getAllQuestionsAPIResult.data.questions;
+          this.isDisabled = (questions == null || questions.length <= 0) ? true : false;
+        }
+        else {
+          console.error("Error retrieving quiz scores");
+        }
+      } catch (error) {
+        console.error("Error during API request", error);
+      }
+
+
+    },
+  }
+}
+</script>
 
 <style>
-
-h2, h3 {
+h2,
+h3 {
   font-size: 2.5rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
@@ -77,6 +110,4 @@ h2, h3 {
   right: 0;
   bottom: 0;
 }
-
-
 </style>

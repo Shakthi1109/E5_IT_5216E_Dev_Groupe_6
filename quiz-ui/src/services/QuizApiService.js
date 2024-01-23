@@ -36,7 +36,7 @@ export default {
     return this.call("get", `questions?position=${position}`);
   },
 
-  getAllQuestions() {
+  async getAllQuestions() {
     return this.call("get", "questions-all");
   },
 
