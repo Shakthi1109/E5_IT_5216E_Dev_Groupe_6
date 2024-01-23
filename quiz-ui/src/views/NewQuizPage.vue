@@ -6,7 +6,7 @@
           v-model="username" />
       </div>
       <button :disabled="!username" @click="launchNewQuiz" type="submit" class="designButton">
-        Discover the future !
+        Start
       </button>
     </form>
   </div>
@@ -45,39 +45,40 @@ export default {
   text-align: center;
 }
 
-@keyframes shake{
-  0%, 100% {translate: 0;}
-  25% {translate: 8px 0;}
-  75% {translate: -8px 0;}
-}
+
 .inputName {
   width: 300px;
   height: 60px;
   padding: 0 20px;
   background: transparent;
   border-radius: 8px;
-  border: 2px solid #fe4567;
+  border: 2px solid #ff0000;
   color: #FFFFFF;
-  font-size: 24px;
+  font-size: 20px;
   margin-bottom: 20px;
-  animation: shake 0.14s 3;
-  color: aliceblue;
 }
 .inputName:valid {
-  border-color: #45feaf;
-  animation: none;
+  border-color: #0dff00;
 }
 
 .designButton {
-  width: 300px;
-  height: 60px;
-  padding: 0 20px;
-  background-color: #a370f0;
-  color: #ffffff;
-  border: none;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
+  background-color: #41d215;
+  color: rgb(255, 255, 255);
+  border: none;
   cursor: pointer;
-  font-size: 24px;
+  width: 200px;
+  font-size: 16px;
+  margin-top: 1rem;
+}
+
+.designButton:hover {
+  color: #000000;
+}
+
+.designButton:active {
+  transform: scale(0.95);
 }
 
 </style>

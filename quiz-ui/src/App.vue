@@ -1,7 +1,3 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-</script>
-
 <template>
   <div>
     <header>
@@ -11,6 +7,9 @@ import { RouterLink, RouterView } from 'vue-router'
           <ul>
             <li>
               <RouterLink to="/">Home</RouterLink>
+            </li>
+            <li>
+              <RouterLink to="/scoreboard-page">Scores</RouterLink>
             </li>
             <li>
               <RouterLink to="/admin">Admin</RouterLink>
@@ -47,12 +46,12 @@ header {
   align-items: center;
   padding: 1rem;
 }
+
 .logo {
-  padding-left: 0.5rem;
   display: block;
-  width: 18%;
+  width: 7%;
   height: 100%;
-  max-height: 4rem;
+  max-height: 3rem;
 }
 
 nav ul {
@@ -69,22 +68,17 @@ nav li {
 }
 
 nav a {
-  color: aliceblue;
+  color: rgb(255, 255, 255);
   text-decoration: none;
   font-size: 2rem;
   letter-spacing: 1px;
 }
 
 nav a:hover {
-  background: linear-gradient(45deg, #ff6600, #1cbd0d);
+  background: #41d215;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-}
-
-
-nav a:hover::before {
-  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -93,11 +87,6 @@ nav a:hover::before {
     justify-content: center;
     align-items: center;
     padding: 0.5rem;
-  }
-
-  .logo {
-    width: 20%;
-    max-height: 2.5rem;
   }
 
   nav ul {

@@ -2,38 +2,58 @@
     <div class="createQuestion">
       <h1>Create question</h1>
       <div >
-        <p>Position</p>
+        <p></p>
+        <p>Question Number
+        <p>
         <input type="text" v-model="position" />
+        </p>
+        </p>
+        
+        <p></p>
+        <p>Topic
+        <p>
+          <input type="text" v-model="title" required />
+        </p>
+        </p>
+        
+        <p></p>
+        <p>Question
+        <p>
+          <input type="text" v-model="text" required />
+        </p>
+        </p>
 
-        <p>Title</p>
-        <input type="text" v-model="title" required />
+        <p></p>
+        <p>Image
+        <p>
+          <ImageUpload @file-change="imageFileChangedHandler"/>
+        </p>
+        </p>
         
-        <p>Text</p>
-        <input type="text" v-model="text" required />
         
-        <p>Image</p>
-        <ImageUpload @file-change="imageFileChangedHandler"/>
         
-        <p>Answers (check the right answer)</p>
+        <p>
+        <p>Answers</p>
         <div>
-          <input type="text" v-model="possibleAnswer[0]" placeholder="Réponse 1" />
+          <input type="text" v-model="possibleAnswer[0]" placeholder="Choice A" />
           <input type="radio" value="0" name="reponse" Checked/>
         </div>
         <div>
-          <input type="text" v-model="possibleAnswer[1]" placeholder="Réponse 2" />
+          <input type="text" v-model="possibleAnswer[1]" placeholder="Choice B" />
           <input type="radio" value="1" name="reponse"/>
         </div>
         <div>
-          <input  type="text" v-model="possibleAnswer[2]" placeholder="Réponse 3" />
+          <input  type="text" v-model="possibleAnswer[2]" placeholder="Choice C" />
           <input type="radio" value="2"  name="reponse"/>
         </div>
         <div>
-          <input  type="text" v-model="possibleAnswer[3]" placeholder="Réponse 4" />
+          <input  type="text" v-model="possibleAnswer[3]" placeholder="Choice D" />
           <input type="radio" value="3" name="reponse"/>
         </div>
+      </p>
     
       </div>
-      <button @click="backToQuestionList" class="glow-on-hover">Back to question list</button>
+      <button @click="backToQuestionList" class="glow-on-hover">Previous</button>
       <button @click="createQuestion" class="glow-on-hover">Create</button>
     </div>
     </template>
@@ -115,6 +135,7 @@ export default {
   padding: 2rem;
   margin-top: 5rem;
   color: #FFFFFF;
+  text-align: center;
 }
 </style>
  
