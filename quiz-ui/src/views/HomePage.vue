@@ -6,7 +6,7 @@
           Start the Quiz !
           <p></p>
           <router-link to="/start-new-quiz-page" class="glow-on-hover">
-            <button class="custom-button1">Take Quiz</button>
+            <button :disabled="disableButton" class="custom-button1">Take Quiz</button>
           </router-link>
         </div>
 
@@ -35,7 +35,8 @@ export default {
   data() {
     return {
       registeredScores: [],
-      scoreColumns: [] // Tableau pour stocker les colonnes de scores
+      scoreColumns: [], // Tableau pour stocker les colonnes de scores
+      disableButton: false
     };
   },
   async created() {
@@ -43,6 +44,7 @@ export default {
     var quizInfoAPIResult = await quizInfoPromise;
     this.registeredScores = quizInfoAPIResult.data.scores;
     this.updateScoreColumns(); // Appeler la fonction pour mettre à jour les colonnes de scores
+    await this.checkQuestions();
     console.log("Composant Home page 'created'");
     console.log("Registered Scores :", this.registeredScores);
   },
@@ -51,7 +53,7 @@ export default {
       const topThreeScores = this.registeredScores.slice(0, 3); // Récupérer uniquement les trois premiers scores
       return topThreeScores.map((score, index) => ({
         ...score,
-        stars: Array(3-index).fill(0) // Générer un tableau avec le nombre d'étoiles correspondant au score
+        stars: Array(3 - index).fill(0) // Générer un tableau avec le nombre d'étoiles correspondant au score
       }));
     },
     updateScoreColumns() {
@@ -62,6 +64,21 @@ export default {
         const end = (i + 1) * 10; // Indice de fin de la colonne
         const scores = this.registeredScores.slice(start, end); // Extraire les scores pour la colonne actuelle
         this.scoreColumns.push({ id: i, scores }); // Ajouter la colonne au tableau des colonnes
+      }
+    },
+    async checkQuestions() {
+      try {
+        const getAllQuestionssAPIResult = await quizApiService.getAllQuestions();
+
+        if (getAllQuestionssAPIResult.status === 200) {
+          const questions = getAllQuestionssAPIResult.data.questions;
+          this.disableButton = (questions == null || questions.length <= 0) ? true : false;
+        }
+        else {
+          console.error("Error retrieving quiz questions");
+        }
+      } catch (error) {
+        console.error("Error during API request", error);
       }
     }
   }
@@ -86,7 +103,8 @@ h4 {
   align-items: center;
   justify-content: center;
   position: relative;
-  height: 100vh; /* Use full height of the viewport */
+  height: 100vh;
+  /* Use full height of the viewport */
 }
 
 .rounded-text1 {
@@ -143,6 +161,4 @@ h4 {
   align-items: center;
   font-size: 24px;
 }
-
-
 </style>
