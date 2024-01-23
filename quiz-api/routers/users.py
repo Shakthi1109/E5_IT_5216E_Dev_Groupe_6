@@ -139,6 +139,10 @@ def submit_participation():
     
     return jsonify(response), 200
 
+@user_page.route("/participations", methods=["GET"])
+def get_participations():
+    data = ParticipationsService.get_all_participations(get_db_connection())
+    return jsonify(data), 200
 
 """
 ### Route pour se connecter en tant qu'administrateur
